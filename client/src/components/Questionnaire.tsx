@@ -535,7 +535,7 @@ const Questionnaire = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-primary-100/20 relative overflow-hidden">
       {/* Background blob - half circle behind header */}
-      <div className="absolute -top-48 left-[15%] w-[500px] h-96 bg-gradient-to-br from-primary-200/40 via-primary-300/30 to-primary-100/20 rounded-full blur-2xl opacity-60"></div>
+      <div className="absolute -top-48 -left-[10%] md:left-[15%] w-[500px] h-96 bg-gradient-to-br from-primary-200/40 via-primary-300/30 to-primary-100/20 rounded-full blur-2xl opacity-60"></div>
 
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50 border-b border-primary-100/50 bg-white/80 backdrop-blur-sm w-full">
