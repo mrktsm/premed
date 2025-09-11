@@ -162,21 +162,6 @@ const Questionnaire = () => {
     { value: "both", label: "Both MD and DO Schools" },
   ];
 
-  const applicantTypeOptions = [
-    { value: "traditional", label: "Traditional" },
-    { value: "non-traditional", label: "Non-traditional" },
-    { value: "first-gen", label: "First-generation College Student" },
-    { value: "urm", label: "URM in Medicine" },
-  ];
-
-  const genderOptions = [
-    { value: "male", label: "Male" },
-    { value: "female", label: "Female" },
-    { value: "non-binary", label: "Non-Binary" },
-    { value: "other", label: "Other" },
-    { value: "prefer-not-say", label: "Prefer not to say" },
-  ];
-
   const guidanceAreaOptions = [
     { value: "mcat", label: "MCAT Preparation" },
     { value: "personal-statements", label: "Personal Statements" },
@@ -187,56 +172,11 @@ const Questionnaire = () => {
     { value: "gap-year", label: "Gap Year Planning" },
   ];
 
-  const mentorshipGoalOptions = [
-    { value: "general-advice", label: "General Advice" },
-    { value: "application-help", label: "Specific Application Component Help" },
-    { value: "specialty-insight", label: "Insight into Medical Specialty" },
-    { value: "networking", label: "Networking/Professional Connections" },
-    { value: "support", label: "Emotional Support and Motivation" },
-  ];
-
-  const communicationOptions = [
-    { value: "email", label: "Email" },
-    { value: "video", label: "Video Calls" },
-    { value: "phone", label: "Phone Calls" },
-    { value: "text", label: "Text Messages" },
-    { value: "in-person", label: "In Person" },
-  ];
-
-  const frequencyOptions = [
-    { value: "weekly", label: "Weekly" },
-    { value: "bi-monthly", label: "Bi-monthly" },
-    { value: "monthly", label: "Monthly" },
-    { value: "as-needed", label: "As Needed" },
-  ];
-
-  const locationOptions = [
-    { value: "any", label: "Yes, any location is fine" },
-    { value: "state-region", label: "I prefer someone in my state or region" },
-    { value: "city", label: "I would prefer someone in my city" },
-  ];
-
   const researchExperienceOptions = [
     { value: "none", label: "None" },
     { value: "assistant", label: "Undergraduate Research Assistant" },
     { value: "conference", label: "Presented at a Conference" },
     { value: "published", label: "Published in a Journal" },
-  ];
-
-  const researchInterestOptions = [
-    { value: "not-interested", label: "Research is not of interest" },
-    { value: "basic-science", label: "Basic Science" },
-    { value: "clinical-science", label: "Clinical Science" },
-    { value: "translational", label: "Translational Medicine" },
-    { value: "public-health", label: "Public Health" },
-    { value: "health-policy", label: "Health Policy" },
-    { value: "other", label: "Other" },
-  ];
-
-  const identityPreferenceOptions = [
-    { value: "important", label: "Yes, this is important to me" },
-    { value: "bonus", label: "It would be a nice bonus, but not essential" },
-    { value: "no-matter", label: "No, it does not matter to me" },
   ];
 
   const mcatStatusOptions = [
