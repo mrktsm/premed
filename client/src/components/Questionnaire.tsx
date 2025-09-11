@@ -1,31 +1,85 @@
 import { useState } from "react";
 
 interface FormData {
+  // Academic Background
+  academicLevel: string;
   university: string;
-  year: string;
   hasUniversity: boolean;
-  academicFocus: string;
   gpa: string;
   hasGpa: boolean;
-  careerGoals: string[];
-  extracurriculars: string[];
+
+  // Medical Interests
+  primarySpecialty: string;
+  mdDoInterest: string;
+
+  // Personal Background
+  firstGenStudent: boolean;
+  applicantType: string[];
+  genderIdentity: string;
+
+  // Application Focus
+  guidanceAreas: string[];
+  mentorshipGoals: string[];
+
+  // Communication Preferences
+  communicationMode: string;
+  meetingFrequency: string;
+  geographicalPreference: string;
+
+  // Research & Experience
+  researchExperience: string;
+  researchInterest: string;
+
+  // Mentorship Preferences
+  similarIdentityPreference: string;
+
+  // MCAT & Timeline
+  mcatStatus: string;
+  applicationTimeline: string;
 }
 
 const Questionnaire = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
+    // Academic Background
+    academicLevel: "",
     university: "",
-    year: "",
     hasUniversity: false,
-    academicFocus: "",
     gpa: "",
     hasGpa: false,
-    careerGoals: [],
-    extracurriculars: [],
+
+    // Medical Interests
+    primarySpecialty: "",
+    mdDoInterest: "",
+
+    // Personal Background
+    firstGenStudent: false,
+    applicantType: [],
+    genderIdentity: "",
+
+    // Application Focus
+    guidanceAreas: [],
+    mentorshipGoals: [],
+
+    // Communication Preferences
+    communicationMode: "",
+    meetingFrequency: "",
+    geographicalPreference: "",
+
+    // Research & Experience
+    researchExperience: "",
+    researchInterest: "",
+
+    // Mentorship Preferences
+    similarIdentityPreference: "",
+
+    // MCAT & Timeline
+    mcatStatus: "",
+    applicationTimeline: "",
   });
 
-  const totalSteps = 6;
+  const totalSteps = 8;
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -52,56 +106,152 @@ const Questionnaire = () => {
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
-        return formData.hasUniversity || formData.university.trim() !== "";
+        return (
+          formData.academicLevel !== "" &&
+          (formData.hasUniversity || formData.university.trim() !== "")
+        );
       case 2:
-        return formData.year !== "";
+        return formData.primarySpecialty !== "" && formData.mdDoInterest !== "";
       case 3:
-        return formData.academicFocus !== "";
+        return formData.genderIdentity !== "";
       case 4:
         return formData.hasGpa || formData.gpa.trim() !== "";
       case 5:
-        return formData.careerGoals.length > 0;
+        return formData.mentorshipGoals.length > 0;
       case 6:
-        return formData.extracurriculars.length > 0;
+        return formData.applicantType.length > 0;
+      case 7:
+        return formData.similarIdentityPreference !== "";
+      case 8:
+        return (
+          formData.mcatStatus !== "" && formData.applicationTimeline !== ""
+        );
       default:
         return true;
     }
   };
 
-  const yearOptions = [
+  const academicLevelOptions = [
     { value: "freshman", label: "Freshman (1st Year)" },
     { value: "sophomore", label: "Sophomore (2nd Year)" },
     { value: "junior", label: "Junior (3rd Year)" },
     { value: "senior", label: "Senior (4th Year)" },
-    { value: "graduate", label: "Graduate Student" },
-    { value: "post-grad", label: "Post-Graduate" },
-  ];
-
-  const academicFocusOptions = [
-    { value: "biology", label: "Biology" },
-    { value: "chemistry", label: "Chemistry" },
-    { value: "biochemistry", label: "Biochemistry" },
-    { value: "neuroscience", label: "Neuroscience" },
-    { value: "psychology", label: "Psychology" },
+    { value: "recent-grad", label: "Recent Graduate" },
+    { value: "masters", label: "Master's Student" },
     { value: "other", label: "Other" },
   ];
 
-  const careerGoalOptions = [
-    { value: "physician", label: "Physician (MD)" },
-    { value: "surgeon", label: "Surgeon" },
-    { value: "researcher", label: "Medical Researcher" },
-    { value: "pediatrician", label: "Pediatrician" },
-    { value: "psychiatrist", label: "Psychiatrist" },
-    { value: "other", label: "Other Medical Field" },
+  const medicalSpecialtyOptions = [
+    { value: "internal-medicine", label: "Internal Medicine" },
+    { value: "pediatrics", label: "Pediatrics" },
+    { value: "surgery", label: "Surgery" },
+    { value: "psychiatry", label: "Psychiatry" },
+    { value: "emergency-medicine", label: "Emergency Medicine" },
+    { value: "family-medicine", label: "Family Medicine" },
+    { value: "radiology", label: "Radiology" },
+    { value: "anesthesiology", label: "Anesthesiology" },
+    { value: "dermatology", label: "Dermatology" },
+    { value: "neurology", label: "Neurology" },
+    { value: "orthopedics", label: "Orthopedics" },
+    { value: "cardiology", label: "Cardiology" },
+    { value: "other", label: "Other/Undecided" },
   ];
 
-  const extracurricularOptions = [
-    { value: "volunteer", label: "Hospital Volunteering" },
-    { value: "research", label: "Research Experience" },
-    { value: "shadowing", label: "Physician Shadowing" },
-    { value: "leadership", label: "Leadership Roles" },
-    { value: "tutoring", label: "Tutoring/Teaching" },
-    { value: "athletics", label: "Athletics/Sports" },
+  const mdDoOptions = [
+    { value: "md", label: "MD Schools Only" },
+    { value: "do", label: "DO Schools Only" },
+    { value: "both", label: "Both MD and DO Schools" },
+  ];
+
+  const applicantTypeOptions = [
+    { value: "traditional", label: "Traditional" },
+    { value: "non-traditional", label: "Non-traditional" },
+    { value: "first-gen", label: "First-generation College Student" },
+    { value: "urm", label: "URM in Medicine" },
+  ];
+
+  const genderOptions = [
+    { value: "male", label: "Male" },
+    { value: "female", label: "Female" },
+    { value: "non-binary", label: "Non-Binary" },
+    { value: "other", label: "Other" },
+    { value: "prefer-not-say", label: "Prefer not to say" },
+  ];
+
+  const guidanceAreaOptions = [
+    { value: "mcat", label: "MCAT Preparation" },
+    { value: "personal-statements", label: "Personal Statements" },
+    { value: "letters", label: "Letters of Recommendation" },
+    { value: "interviews", label: "Interview Skills" },
+    { value: "school-list", label: "Building School List" },
+    { value: "strategy", label: "General Application Strategy" },
+    { value: "gap-year", label: "Gap Year Planning" },
+  ];
+
+  const mentorshipGoalOptions = [
+    { value: "general-advice", label: "General Advice" },
+    { value: "application-help", label: "Specific Application Component Help" },
+    { value: "specialty-insight", label: "Insight into Medical Specialty" },
+    { value: "networking", label: "Networking/Professional Connections" },
+    { value: "support", label: "Emotional Support and Motivation" },
+  ];
+
+  const communicationOptions = [
+    { value: "email", label: "Email" },
+    { value: "video", label: "Video Calls" },
+    { value: "phone", label: "Phone Calls" },
+    { value: "text", label: "Text Messages" },
+    { value: "in-person", label: "In Person" },
+  ];
+
+  const frequencyOptions = [
+    { value: "weekly", label: "Weekly" },
+    { value: "bi-monthly", label: "Bi-monthly" },
+    { value: "monthly", label: "Monthly" },
+    { value: "as-needed", label: "As Needed" },
+  ];
+
+  const locationOptions = [
+    { value: "any", label: "Yes, any location is fine" },
+    { value: "state-region", label: "I prefer someone in my state or region" },
+    { value: "city", label: "I would prefer someone in my city" },
+  ];
+
+  const researchExperienceOptions = [
+    { value: "none", label: "None" },
+    { value: "assistant", label: "Undergraduate Research Assistant" },
+    { value: "conference", label: "Presented at a Conference" },
+    { value: "published", label: "Published in a Journal" },
+  ];
+
+  const researchInterestOptions = [
+    { value: "not-interested", label: "Research is not of interest" },
+    { value: "basic-science", label: "Basic Science" },
+    { value: "clinical-science", label: "Clinical Science" },
+    { value: "translational", label: "Translational Medicine" },
+    { value: "public-health", label: "Public Health" },
+    { value: "health-policy", label: "Health Policy" },
+    { value: "other", label: "Other" },
+  ];
+
+  const identityPreferenceOptions = [
+    { value: "important", label: "Yes, this is important to me" },
+    { value: "bonus", label: "It would be a nice bonus, but not essential" },
+    { value: "no-matter", label: "No, it does not matter to me" },
+  ];
+
+  const mcatStatusOptions = [
+    { value: "not-started", label: "Have not started studying" },
+    { value: "studying", label: "Started studying" },
+    { value: "taken-waiting", label: "Taken exam (awaiting scores)" },
+    { value: "received-scores", label: "Have received my scores" },
+  ];
+
+  const timelineOptions = [
+    { value: "6-months", label: "Next 6 months" },
+    { value: "1-2-years", label: "In 1-2 years" },
+    { value: "3-plus-years", label: "In 3+ years" },
+    { value: "not-sure", label: "Not sure" },
   ];
 
   const toggleArrayValue = (array: string[], value: string) => {
@@ -116,48 +266,72 @@ const Questionnaire = () => {
         return (
           <>
             <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              University and Year
+              Academic Background
             </h1>
-            <div className="space-y-2">
-              <div>
-                <label
-                  className="m-0 inline-flex items-center text-sm font-medium mb-2 text-gray-700"
-                  htmlFor="university-input"
-                >
-                  Current University
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    placeholder="Enter your university name"
-                    className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
-                    id="university-input"
-                    value={formData.university}
-                    onChange={(e) =>
-                      updateFormData("university", e.target.value)
-                    }
-                    disabled={formData.hasUniversity}
-                  />
+            <div className="space-y-6">
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What is your current academic level?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {academicLevelOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.academicLevel === option.value
+                          ? "bg-primary-600 border-primary-600 text-white"
+                          : "bg-primary-100 border-primary-200 text-gray-800"
+                      }`}
+                      onClick={() =>
+                        updateFormData("academicLevel", option.value)
+                      }
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="relative flex items-start">
-                <div className="flex h-5 items-center">
-                  <input
-                    id="no-university-checkbox"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-primary-300 rounded accent-primary-500"
-                    checked={formData.hasUniversity}
-                    onChange={(e) =>
-                      updateFormData("hasUniversity", e.target.checked)
-                    }
-                  />
+              <div className="space-y-2">
+                <div>
+                  <label
+                    className="m-0 inline-flex items-center text-sm font-medium mb-2 text-gray-700"
+                    htmlFor="university-input"
+                  >
+                    Current University
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Enter your university name"
+                      className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none  focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                      id="university-input"
+                      value={formData.university}
+                      onChange={(e) =>
+                        updateFormData("university", e.target.value)
+                      }
+                      disabled={formData.hasUniversity}
+                    />
+                  </div>
                 </div>
-                <label
-                  className="m-0 inline-flex items-center text-sm ml-2 text-gray-600"
-                  htmlFor="no-university-checkbox"
-                >
-                  I'm not currently enrolled in university.
-                </label>
+                <div className="relative flex items-start">
+                  <div className="flex h-5 items-center">
+                    <input
+                      id="no-university-checkbox"
+                      type="checkbox"
+                      className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-primary-300 rounded accent-primary-500"
+                      checked={formData.hasUniversity}
+                      onChange={(e) =>
+                        updateFormData("hasUniversity", e.target.checked)
+                      }
+                    />
+                  </div>
+                  <label
+                    className="m-0 inline-flex items-center text-sm ml-2 text-gray-600"
+                    htmlFor="no-university-checkbox"
+                  >
+                    I'm not currently enrolled in university.
+                  </label>
+                </div>
               </div>
             </div>
           </>
@@ -167,72 +341,53 @@ const Questionnaire = () => {
         return (
           <>
             <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              Academic Year
+              Medical Interests
             </h1>
-            <div className="mt-6">
-              <div className="mb-2 text-sm font-medium text-gray-700">
-                What year are you in?
-              </div>
-              <div className="flex flex-wrap items-center">
-                {yearOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
-                      formData.year === option.value
-                        ? "border-primary-500"
-                        : "border-gray-200"
-                    }`}
-                    onClick={() => updateFormData("year", option.value)}
-                  >
-                    <span>
-                      <div className="flex items-center space-x-3">
-                        <div className="rounded-lg bg-primary-100 p-2">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-primary-600"
-                          >
-                            <path
-                              d="M12 2L3 7L12 12L21 7L12 2Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M3 17L12 22L21 17"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M3 12L12 17L21 12"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </div>
-                        <span>{option.label}</span>
-                      </div>
-                    </span>
-                    {formData.year === option.value && (
-                      <svg
-                        viewBox="0 0 4.233 4.233"
-                        className="order-1 ml-2 h-4 w-4 shrink-0 text-primary-600"
+            <div className="space-y-6">
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What is your primary medical specialty of interest?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {medicalSpecialtyOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.primarySpecialty === option.value
+                          ? "bg-primary-600 border-primary-600 text-white"
+                          : "bg-primary-100 border-primary-200 text-gray-800"
+                      }`}
+                      onClick={() =>
+                        updateFormData("primarySpecialty", option.value)
+                      }
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-6">
+                  <div className="mb-2 text-sm font-medium text-gray-700">
+                    Are you interested in MD Schools, DO Schools, or both?
+                  </div>
+                  <div className="flex flex-wrap items-center">
+                    {mdDoOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                          formData.mdDoInterest === option.value
+                            ? "bg-primary-600 border-primary-600 text-white"
+                            : "bg-primary-100 border-primary-200 text-gray-800"
+                        }`}
+                        onClick={() =>
+                          updateFormData("mdDoInterest", option.value)
+                        }
                       >
-                        <path
-                          d="M2.117 0a2.117 2.117 0 110 4.233 2.117 2.117 0 010-4.233zM3.1 1.755a.253.253 0 10-.358-.358l-.895.895-.358-.358a.253.253 0 10-.358.358l.537.537a.253.253 0 00.358 0z"
-                          fill="currentColor"
-                          fillRule="evenodd"
-                        ></path>
-                      </svg>
-                    )}
-                  </button>
-                ))}
+                        <span className="font-medium">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </>
@@ -249,54 +404,19 @@ const Questionnaire = () => {
                 What's your major or area of study?
               </div>
               <div className="flex flex-wrap items-center">
-                {academicFocusOptions.map((option) => (
+                {medicalSpecialtyOptions.map((option) => (
                   <button
                     key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
-                      formData.academicFocus === option.value
-                        ? "border-primary-500"
-                        : "border-gray-200"
+                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                      formData.genderIdentity === option.value
+                        ? "bg-primary-600 border-primary-600 text-white"
+                        : "bg-primary-100 border-primary-200 text-gray-800"
                     }`}
                     onClick={() =>
-                      updateFormData("academicFocus", option.value)
+                      updateFormData("genderIdentity", option.value)
                     }
                   >
-                    <span>
-                      <div className="flex items-center space-x-3">
-                        <div className="rounded-lg bg-primary-100 p-2">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-primary-600"
-                          >
-                            <path
-                              d="M22 10V6C22 5.45 21.55 5 21 5H3C2.45 5 2 5.45 2 6V10C2 10.55 2.45 11 3 11H21C21.55 11 22 10.55 22 10Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                            <path
-                              d="M7 19H17L19 13H5L7 19Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                        </div>
-                        <span>{option.label}</span>
-                      </div>
-                    </span>
-                    {formData.academicFocus === option.value && (
-                      <svg
-                        viewBox="0 0 4.233 4.233"
-                        className="order-1 ml-2 h-4 w-4 shrink-0 text-primary-600"
-                      >
-                        <path
-                          d="M2.117 0a2.117 2.117 0 110 4.233 2.117 2.117 0 010-4.233zM3.1 1.755a.253.253 0 10-.358-.358l-.895.895-.358-.358a.253.253 0 10-.358.358l.537.537a.253.253 0 00.358 0z"
-                          fill="currentColor"
-                          fillRule="evenodd"
-                        ></path>
-                      </svg>
-                    )}
+                    <span className="font-medium">{option.label}</span>
                   </button>
                 ))}
               </div>
@@ -322,7 +442,7 @@ const Questionnaire = () => {
                   <input
                     type="text"
                     placeholder="e.g., 3.8"
-                    className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                    className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none  focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
                     id="gpa-input"
                     value={formData.gpa}
                     onChange={(e) => updateFormData("gpa", e.target.value)}
@@ -362,57 +482,22 @@ const Questionnaire = () => {
                 What are your medical career interests? (Select all that apply)
               </div>
               <div className="flex flex-wrap items-center">
-                {careerGoalOptions.map((option) => (
+                {guidanceAreaOptions.map((option) => (
                   <button
                     key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
-                      formData.careerGoals.includes(option.value)
-                        ? "border-primary-500"
-                        : "border-gray-200"
+                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                      formData.mentorshipGoals.includes(option.value)
+                        ? "bg-primary-600 border-primary-600 text-white"
+                        : "bg-primary-100 border-primary-200 text-gray-800"
                     }`}
                     onClick={() =>
                       updateFormData(
-                        "careerGoals",
-                        toggleArrayValue(formData.careerGoals, option.value)
+                        "mentorshipGoals",
+                        toggleArrayValue(formData.mentorshipGoals, option.value)
                       )
                     }
                   >
-                    <span>
-                      <div className="flex items-center space-x-3">
-                        <div className="rounded-lg bg-primary-100 p-2">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-primary-600"
-                          >
-                            <path
-                              d="M19 14C20.49 14 22 15.5 22 17V20H2V17C2 15.5 3.51 14 5 14H19Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                            <path
-                              d="M12 11C14.21 11 16 9.21 16 7C16 4.79 14.21 3 12 3C9.79 3 8 4.79 8 7C8 9.21 9.79 11 12 11Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                        </div>
-                        <span>{option.label}</span>
-                      </div>
-                    </span>
-                    {formData.careerGoals.includes(option.value) && (
-                      <svg
-                        viewBox="0 0 4.233 4.233"
-                        className="order-1 ml-2 h-4 w-4 shrink-0 text-primary-600"
-                      >
-                        <path
-                          d="M2.117 0a2.117 2.117 0 110 4.233 2.117 2.117 0 010-4.233zM3.1 1.755a.253.253 0 10-.358-.358l-.895.895-.358-.358a.253.253 0 10-.358.358l.537.537a.253.253 0 00.358 0z"
-                          fill="currentColor"
-                          fillRule="evenodd"
-                        ></path>
-                      </svg>
-                    )}
+                    <span className="font-medium">{option.label}</span>
                   </button>
                 ))}
               </div>
@@ -432,60 +517,22 @@ const Questionnaire = () => {
                 that apply)
               </div>
               <div className="flex flex-wrap items-center">
-                {extracurricularOptions.map((option) => (
+                {researchExperienceOptions.map((option) => (
                   <button
                     key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
-                      formData.extracurriculars.includes(option.value)
-                        ? "border-primary-500"
-                        : "border-gray-200"
+                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                      formData.applicantType.includes(option.value)
+                        ? "bg-primary-600 border-primary-600 text-white"
+                        : "bg-primary-100 border-primary-200 text-gray-800"
                     }`}
                     onClick={() =>
                       updateFormData(
-                        "extracurriculars",
-                        toggleArrayValue(
-                          formData.extracurriculars,
-                          option.value
-                        )
+                        "applicantType",
+                        toggleArrayValue(formData.applicantType, option.value)
                       )
                     }
                   >
-                    <span>
-                      <div className="flex items-center space-x-3">
-                        <div className="rounded-lg bg-primary-100 p-2">
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6 text-primary-600"
-                          >
-                            <path
-                              d="M17 21V19C17 17.9 16.1 17 15 17H9C7.9 17 7 17.9 7 19V21"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                            <path
-                              d="M12 11C14.21 11 16 9.21 16 7C16 4.79 14.21 3 12 3C9.79 3 8 4.79 8 7C8 9.21 9.79 11 12 11Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                        </div>
-                        <span>{option.label}</span>
-                      </div>
-                    </span>
-                    {formData.extracurriculars.includes(option.value) && (
-                      <svg
-                        viewBox="0 0 4.233 4.233"
-                        className="order-1 ml-2 h-4 w-4 shrink-0 text-primary-600"
-                      >
-                        <path
-                          d="M2.117 0a2.117 2.117 0 110 4.233 2.117 2.117 0 010-4.233zM3.1 1.755a.253.253 0 10-.358-.358l-.895.895-.358-.358a.253.253 0 10-.358.358l.537.537a.253.253 0 00.358 0z"
-                          fill="currentColor"
-                          fillRule="evenodd"
-                        ></path>
-                      </svg>
-                    )}
+                    <span className="font-medium">{option.label}</span>
                   </button>
                 ))}
               </div>
@@ -540,7 +587,7 @@ const Questionnaire = () => {
             {currentStep > 1 && (
               <button
                 onClick={handlePrevious}
-                className="px-6 py-3 text-base rounded-lg border border-primary-200 text-primary-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white/80 backdrop-blur-sm"
+                className="px-6 py-3 text-base rounded-lg border border-primary-200 text-primary-700 hover:bg-primary-50 focus:outline-none  bg-white/80 backdrop-blur-sm"
               >
                 Previous
               </button>
@@ -557,7 +604,7 @@ const Questionnaire = () => {
               }
               className={`px-12 py-3 text-base rounded-lg font-medium focus:outline-none ${
                 isStepValid() && !isLoading
-                  ? "bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-400"
+                  ? "bg-primary-500 text-white hover:bg-primary-600 "
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
