@@ -13,6 +13,7 @@ interface FormData {
 
 const Questionnaire = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     university: "",
     year: "",
@@ -30,9 +31,15 @@ const Questionnaire = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
+  const handleNext = async () => {
+    if (currentStep < totalSteps && !isLoading) {
+      setIsLoading(true);
+
+      // Simulate loading for 0.6 seconds
+      await new Promise((resolve) => setTimeout(resolve, 600));
+
       setCurrentStep(currentStep + 1);
+      setIsLoading(false);
     }
   };
 
@@ -123,7 +130,7 @@ const Questionnaire = () => {
                   <input
                     type="text"
                     placeholder="Enter your university name"
-                    className="w-full px-4 py-3 border border-primary-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                    className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
                     id="university-input"
                     value={formData.university}
                     onChange={(e) =>
@@ -138,7 +145,7 @@ const Questionnaire = () => {
                   <input
                     id="no-university-checkbox"
                     type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 rounded"
+                    className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-primary-300 rounded accent-primary-500"
                     checked={formData.hasUniversity}
                     onChange={(e) =>
                       updateFormData("hasUniversity", e.target.checked)
@@ -170,7 +177,7 @@ const Questionnaire = () => {
                 {yearOptions.map((option) => (
                   <button
                     key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-xl border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
+                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
                       formData.year === option.value
                         ? "border-primary-500"
                         : "border-gray-200"
@@ -245,7 +252,7 @@ const Questionnaire = () => {
                 {academicFocusOptions.map((option) => (
                   <button
                     key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-xl border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
+                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
                       formData.academicFocus === option.value
                         ? "border-primary-500"
                         : "border-gray-200"
@@ -315,7 +322,7 @@ const Questionnaire = () => {
                   <input
                     type="text"
                     placeholder="e.g., 3.8"
-                    className="w-full px-4 py-3 border border-primary-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                    className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
                     id="gpa-input"
                     value={formData.gpa}
                     onChange={(e) => updateFormData("gpa", e.target.value)}
@@ -328,7 +335,7 @@ const Questionnaire = () => {
                   <input
                     id="no-gpa-checkbox"
                     type="checkbox"
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-primary-300 rounded"
+                    className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-primary-300 rounded accent-primary-500"
                     checked={formData.hasGpa}
                     onChange={(e) => updateFormData("hasGpa", e.target.checked)}
                   />
@@ -358,7 +365,7 @@ const Questionnaire = () => {
                 {careerGoalOptions.map((option) => (
                   <button
                     key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-xl border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
+                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
                       formData.careerGoals.includes(option.value)
                         ? "border-primary-500"
                         : "border-gray-200"
@@ -428,7 +435,7 @@ const Questionnaire = () => {
                 {extracurricularOptions.map((option) => (
                   <button
                     key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-xl border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
+                    className={`m-1 flex h-full cursor-pointer items-center justify-between space-x-2 rounded-lg border-2 p-4 shadow-sm focus:outline-none focus-visible:ring focus-visible:ring-primary-200 focus-visible:ring-offset-2 hover:border-primary-400 py-1 pl-1 pr-2 ${
                       formData.extracurriculars.includes(option.value)
                         ? "border-primary-500"
                         : "border-gray-200"
@@ -501,6 +508,20 @@ const Questionnaire = () => {
         <div className="w-full py-8 px-8">
           {/* Header content will go here */}
         </div>
+        {/* Progress bar */}
+        <div className="w-full h-1 bg-transparent">
+          <div
+            className={`h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all duration-500 ease-out ${
+              isLoading ? "animate-pulse" : ""
+            }`}
+            style={{
+              width: isLoading ? "100%" : "0%",
+              transition: isLoading
+                ? "width 0.6s ease-out"
+                : "width 0.3s ease-out",
+            }}
+          ></div>
+        </div>
       </div>
 
       {/* Main content */}
@@ -528,14 +549,14 @@ const Questionnaire = () => {
             <div className="flex-1"></div>
 
             <button
-              disabled={!isStepValid()}
+              disabled={!isStepValid() || isLoading}
               onClick={
                 currentStep === totalSteps
                   ? () => console.log("Form submitted:", formData)
                   : handleNext
               }
               className={`px-12 py-3 text-base rounded-lg font-medium focus:outline-none ${
-                isStepValid()
+                isStepValid() && !isLoading
                   ? "bg-primary-500 text-white hover:bg-primary-600 focus:ring-2 focus:ring-primary-400"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
@@ -546,7 +567,7 @@ const Questionnaire = () => {
 
           <hr className="my-8 border-primary-100" />
 
-          <div className="flex items-start justify-between space-x-4 rounded-xl border p-6 text-sm bg-primary-50/50 text-primary-800 border-primary-200/50 backdrop-blur-sm">
+          <div className="flex items-start justify-between space-x-4 rounded-lg border p-6 text-sm bg-primary-50/50 text-primary-800 border-primary-200/50 backdrop-blur-sm">
             <div className="flex">
               <svg
                 viewBox="0 0 16 16"
@@ -564,9 +585,8 @@ const Questionnaire = () => {
                   Why are we asking this?
                 </div>
                 <p className="leading-relaxed">
-                  This information helps us provide personalized guidance for
-                  your pre-medical journey and match you with relevant
-                  resources.
+                  This information helps us match you with the most relevant
+                  mentors.
                 </p>
               </div>
             </div>
