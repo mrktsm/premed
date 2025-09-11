@@ -79,7 +79,7 @@ const Questionnaire = () => {
     applicationTimeline: "",
   });
 
-  const totalSteps = 8;
+  const totalSteps = 6;
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -113,16 +113,15 @@ const Questionnaire = () => {
       case 2:
         return formData.primarySpecialty !== "" && formData.mdDoInterest !== "";
       case 3:
-        return formData.genderIdentity !== "";
+        return (
+          formData.genderIdentity !== "" &&
+          (formData.hasGpa || formData.gpa.trim() !== "")
+        );
       case 4:
-        return formData.hasGpa || formData.gpa.trim() !== "";
-      case 5:
         return formData.mentorshipGoals.length > 0;
-      case 6:
+      case 5:
         return formData.applicantType.length > 0;
-      case 7:
-        return formData.similarIdentityPreference !== "";
-      case 8:
+      case 6:
         return (
           formData.mcatStatus !== "" && formData.applicationTimeline !== ""
         );
@@ -279,8 +278,8 @@ const Questionnaire = () => {
                       key={option.value}
                       className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
                         formData.academicLevel === option.value
-                          ? "bg-primary-600 border-primary-600 text-white"
-                          : "bg-primary-100 border-primary-200 text-gray-800"
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
                       }`}
                       onClick={() =>
                         updateFormData("academicLevel", option.value)
@@ -354,8 +353,8 @@ const Questionnaire = () => {
                       key={option.value}
                       className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
                         formData.primarySpecialty === option.value
-                          ? "bg-primary-600 border-primary-600 text-white"
-                          : "bg-primary-100 border-primary-200 text-gray-800"
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
                       }`}
                       onClick={() =>
                         updateFormData("primarySpecialty", option.value)
@@ -376,8 +375,8 @@ const Questionnaire = () => {
                         key={option.value}
                         className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
                           formData.mdDoInterest === option.value
-                            ? "bg-primary-600 border-primary-600 text-white"
-                            : "bg-primary-100 border-primary-200 text-gray-800"
+                            ? "bg-white border-primary-500 text-gray-800"
+                            : "bg-white border-gray-300 text-gray-800"
                         }`}
                         onClick={() =>
                           updateFormData("mdDoInterest", option.value)
@@ -409,8 +408,8 @@ const Questionnaire = () => {
                     key={option.value}
                     className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
                       formData.genderIdentity === option.value
-                        ? "bg-primary-600 border-primary-600 text-white"
-                        : "bg-primary-100 border-primary-200 text-gray-800"
+                        ? "bg-white border-primary-500 text-gray-800"
+                        : "bg-white border-gray-300 text-gray-800"
                     }`}
                     onClick={() =>
                       updateFormData("genderIdentity", option.value)
@@ -420,58 +419,52 @@ const Questionnaire = () => {
                   </button>
                 ))}
               </div>
+
+              <div className="space-y-2 mt-6">
+                <div>
+                  <label
+                    className="m-0 inline-flex items-center text-sm font-medium mb-2 text-gray-700"
+                    htmlFor="gpa-input"
+                  >
+                    Current GPA
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="e.g., 3.8"
+                      className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none  focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
+                      id="gpa-input"
+                      value={formData.gpa}
+                      onChange={(e) => updateFormData("gpa", e.target.value)}
+                      disabled={formData.hasGpa}
+                    />
+                  </div>
+                </div>
+                <div className="relative flex items-start">
+                  <div className="flex h-5 items-center">
+                    <input
+                      id="no-gpa-checkbox"
+                      type="checkbox"
+                      className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-primary-300 rounded accent-primary-500"
+                      checked={formData.hasGpa}
+                      onChange={(e) =>
+                        updateFormData("hasGpa", e.target.checked)
+                      }
+                    />
+                  </div>
+                  <label
+                    className="m-0 inline-flex items-center text-sm ml-2 text-gray-600"
+                    htmlFor="no-gpa-checkbox"
+                  >
+                    I prefer not to share my GPA.
+                  </label>
+                </div>
+              </div>
             </div>
           </>
         );
 
       case 4:
-        return (
-          <>
-            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              Academic Performance
-            </h1>
-            <div className="space-y-2">
-              <div>
-                <label
-                  className="m-0 inline-flex items-center text-sm font-medium mb-2 text-gray-700"
-                  htmlFor="gpa-input"
-                >
-                  Current GPA
-                </label>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    placeholder="e.g., 3.8"
-                    className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none  focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
-                    id="gpa-input"
-                    value={formData.gpa}
-                    onChange={(e) => updateFormData("gpa", e.target.value)}
-                    disabled={formData.hasGpa}
-                  />
-                </div>
-              </div>
-              <div className="relative flex items-start">
-                <div className="flex h-5 items-center">
-                  <input
-                    id="no-gpa-checkbox"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-primary-300 rounded accent-primary-500"
-                    checked={formData.hasGpa}
-                    onChange={(e) => updateFormData("hasGpa", e.target.checked)}
-                  />
-                </div>
-                <label
-                  className="m-0 inline-flex items-center text-sm ml-2 text-gray-600"
-                  htmlFor="no-gpa-checkbox"
-                >
-                  I prefer not to share my GPA.
-                </label>
-              </div>
-            </div>
-          </>
-        );
-
-      case 5:
         return (
           <>
             <h1 className="mt-2 text-4xl font-semibold text-gray-900">
@@ -487,8 +480,8 @@ const Questionnaire = () => {
                     key={option.value}
                     className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
                       formData.mentorshipGoals.includes(option.value)
-                        ? "bg-primary-600 border-primary-600 text-white"
-                        : "bg-primary-100 border-primary-200 text-gray-800"
+                        ? "bg-white border-primary-500 text-gray-800"
+                        : "bg-white border-gray-300 text-gray-800"
                     }`}
                     onClick={() =>
                       updateFormData(
@@ -505,7 +498,7 @@ const Questionnaire = () => {
           </>
         );
 
-      case 6:
+      case 5:
         return (
           <>
             <h1 className="mt-2 text-4xl font-semibold text-gray-900">
@@ -522,8 +515,8 @@ const Questionnaire = () => {
                     key={option.value}
                     className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
                       formData.applicantType.includes(option.value)
-                        ? "bg-primary-600 border-primary-600 text-white"
-                        : "bg-primary-100 border-primary-200 text-gray-800"
+                        ? "bg-white border-primary-500 text-gray-800"
+                        : "bg-white border-gray-300 text-gray-800"
                     }`}
                     onClick={() =>
                       updateFormData(
@@ -535,6 +528,60 @@ const Questionnaire = () => {
                     <span className="font-medium">{option.label}</span>
                   </button>
                 ))}
+              </div>
+            </div>
+          </>
+        );
+
+      case 6:
+        return (
+          <>
+            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
+              MCAT & Application Timeline
+            </h1>
+            <div className="space-y-6">
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What is your current MCAT status?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {mcatStatusOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.mcatStatus === option.value
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() => updateFormData("mcatStatus", option.value)}
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  When are you planning to apply to medical school?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {timelineOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.applicationTimeline === option.value
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() =>
+                        updateFormData("applicationTimeline", option.value)
+                      }
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </>
