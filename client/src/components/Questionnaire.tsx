@@ -538,7 +538,7 @@ const Questionnaire = () => {
       <div className="absolute -top-48 left-[15%] w-[500px] h-96 bg-gradient-to-br from-primary-200/40 via-primary-300/30 to-primary-100/20 rounded-full blur-2xl opacity-60"></div>
 
       {/* Header */}
-      <div className="relative z-10 border-b border-primary-100/50 bg-white/80 backdrop-blur-sm w-full">
+      <div className="fixed top-0 left-0 right-0 z-50 border-b border-primary-100/50 bg-white/80 backdrop-blur-sm w-full">
         <div className="w-full py-8 px-8">
           {/* Header content will go here */}
         </div>
@@ -559,7 +559,7 @@ const Questionnaire = () => {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 py-12 w-full">
+      <div className="relative z-10 pt-32 pb-12 w-full">
         <div className="max-w-4xl mx-auto px-8">
           {/* Step indicator in top-left */}
           <div className="mb-8">
