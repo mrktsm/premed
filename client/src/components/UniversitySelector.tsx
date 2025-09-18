@@ -135,14 +135,6 @@ const UniversitySelector = ({
           ))}
         </div>
       )}
-
-      {inputValue.trim().length >= 2 && suggestions.length === 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-primary-200 rounded-lg shadow-lg">
-          <div className="px-4 py-3 text-gray-500 text-center">
-            No universities found. Try a different search term.
-          </div>
-        </div>
-      )}
     </div>
   );
 };
