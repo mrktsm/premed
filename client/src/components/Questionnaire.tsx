@@ -39,7 +39,11 @@ interface FormData {
   applicationTimeline: string;
 }
 
-const Questionnaire = () => {
+interface QuestionnaireProps {
+  onBackToSignUp?: () => void;
+}
+
+const Questionnaire = ({ onBackToSignUp }: QuestionnaireProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
