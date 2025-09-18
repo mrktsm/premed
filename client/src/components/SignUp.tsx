@@ -1,4 +1,5 @@
 import { useState } from "react";
+import medicalImage from "../assets/ishutter-stock-image-test.jpg";
 
 interface SignUpProps {
   onSignUpComplete?: () => void;
@@ -270,7 +271,7 @@ const SignUp = ({ onSignUpComplete }: SignUpProps) => {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src="/src/assets/ishutter-stock-image-test.jpg"
+            src={medicalImage}
             alt="Medical professionals"
             className="w-full h-full object-cover"
           />
