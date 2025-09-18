@@ -18,6 +18,7 @@ const UniversitySelector = ({
   const [suggestions, setSuggestions] = useState<University[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +27,7 @@ const UniversitySelector = ({
   }, [value]);
 
   useEffect(() => {
-    if (inputValue.trim().length >= 2) {
+    if (inputValue.trim().length >= 2 && hasUserInteracted) {
       const results = searchUniversities(inputValue, 8);
       setSuggestions(results);
       setShowSuggestions(results.length > 0);
@@ -36,11 +37,12 @@ const UniversitySelector = ({
       setShowSuggestions(false);
       setSelectedIndex(-1);
     }
-  }, [inputValue]);
+  }, [inputValue, hasUserInteracted]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
+    setHasUserInteracted(true);
     onChange(newValue);
   };
 
@@ -87,6 +89,7 @@ const UniversitySelector = ({
   };
 
   const handleInputFocus = () => {
+    setHasUserInteracted(true);
     if (inputValue.trim().length >= 2 && suggestions.length > 0) {
       setShowSuggestions(true);
     }
