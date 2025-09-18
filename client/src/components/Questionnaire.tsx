@@ -1,4 +1,5 @@
 import { useState } from "react";
+import UniversitySelector from "./UniversitySelector";
 
 interface FormData {
   // Academic Background
@@ -239,16 +240,11 @@ const Questionnaire = () => {
                     Current University
                   </label>
                   <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Enter your university name"
-                      className="w-full px-4 py-3 border border-primary-200 rounded-lg shadow-sm focus:outline-none  focus:border-primary-500 bg-white/80 backdrop-blur-sm transition-all duration-200"
-                      id="university-input"
+                    <UniversitySelector
                       value={formData.university}
-                      onChange={(e) =>
-                        updateFormData("university", e.target.value)
-                      }
+                      onChange={(value) => updateFormData("university", value)}
                       disabled={formData.hasUniversity}
+                      placeholder="Search for your university..."
                     />
                   </div>
                 </div>
