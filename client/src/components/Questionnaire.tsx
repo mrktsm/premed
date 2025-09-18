@@ -183,16 +183,6 @@ const Questionnaire = ({
     { value: "gap-year-planning", label: "Gap Year Planning" },
   ];
 
-  const researchExperienceOptions = [
-    { value: "none", label: "None" },
-    {
-      value: "undergraduate-research-assistant",
-      label: "Undergraduate Research Assistant",
-    },
-    { value: "presented-at-conference", label: "Presented at a Conference" },
-    { value: "published-in-journal", label: "Published in a Journal" },
-  ];
-
   const mcatStatusOptions = [
     { value: "have-not-started-studying", label: "Have not started studying" },
     { value: "started-studying", label: "Started studying" },
@@ -237,49 +227,6 @@ const Questionnaire = ({
     },
   ];
 
-  const communicationModeOptions = [
-    { value: "email", label: "Email" },
-    { value: "video-calls", label: "Video Calls" },
-    { value: "phone-calls", label: "Phone calls" },
-    { value: "text-messages", label: "Text Messages" },
-    { value: "in-person", label: "In person" },
-  ];
-
-  const meetingFrequencyOptions = [
-    { value: "weekly", label: "Weekly" },
-    { value: "bi-monthly", label: "Bi-monthly" },
-    { value: "monthly", label: "Monthly" },
-    { value: "as-needed", label: "As needed" },
-  ];
-
-  const geographicalPreferenceOptions = [
-    { value: "any-location", label: "Yes, any location is fine" },
-    {
-      value: "same-state-region",
-      label: "No, I prefer someone in my state or region",
-    },
-    { value: "same-city", label: "No, I would prefer someone in my city" },
-  ];
-
-  const researchInterestOptions = [
-    { value: "research-not-of-interest", label: "Research is not of interest" },
-    { value: "basic-science", label: "Basic science" },
-    { value: "clinical-science", label: "Clinical science" },
-    { value: "translational-medicine", label: "Translational medicine" },
-    { value: "public-health", label: "Public health" },
-    { value: "health-policy", label: "Health policy" },
-    { value: "other", label: "Other" },
-  ];
-
-  const similarIdentityPreferenceOptions = [
-    { value: "important", label: "Yes, this is important to me" },
-    {
-      value: "nice-bonus",
-      label: "It would be a nice bonus, but not essential",
-    },
-    { value: "does-not-matter", label: "No, it does not matter to me" },
-  ];
-
   const genderIdentityOptions = [
     { value: "male", label: "Male" },
     { value: "female", label: "Female" },
@@ -287,12 +234,6 @@ const Questionnaire = ({
     { value: "other", label: "Other" },
     { value: "prefer-not-to-say", label: "Prefer not to say" },
   ];
-
-  const toggleArrayValue = (array: string[], value: string) => {
-    return array.includes(value)
-      ? array.filter((item) => item !== value)
-      : [...array, value];
-  };
 
   const renderStep = () => {
     switch (currentStep) {
