@@ -1,40 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Questionnaire from "./components/Questionnaire";
 import MentorQuestionnaire from "./components/MentorQuestionnaire";
 import SignUp from "./components/SignUp";
-import UserTypeSelection from "./components/UserTypeSelection";
 import "./App.css";
 
-type ViewType = "signup" | "userType" | "menteeQuestionnaire" | "mentorQuestionnaire";
+type ViewType = "signup" | "menteeQuestionnaire" | "mentorQuestionnaire";
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>("signup");
-  const [userType, setUserType] = useState<"mentor" | "mentee" | null>(null);
+
+  // Check URL path to determine initial view
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === "/mentor") {
+      setCurrentView("mentorQuestionnaire");
+    } else if (path === "/mentee") {
+      setCurrentView("menteeQuestionnaire");
+    } else if (path === "/signup") {
+      setCurrentView("signup");
+    } else {
+      // Default to signup for root path
+      setCurrentView("signup");
+    }
+  }, []);
 
   const handleSignUpComplete = () => {
-    setCurrentView("userType");
-  };
-
-  const handleUserTypeSelected = (selectedUserType: "mentor" | "mentee") => {
-    setUserType(selectedUserType);
-    if (selectedUserType === "mentee") {
-      setCurrentView("menteeQuestionnaire");
-    } else {
-      setCurrentView("mentorQuestionnaire");
-    }
+    // Default to mentee questionnaire after signup
+    setCurrentView("menteeQuestionnaire");
+    window.history.pushState(null, "", "/mentee");
   };
 
   const handleBackToSignUp = () => {
     setCurrentView("signup");
-    setUserType(null);
+    window.history.pushState(null, "", "/signup");
   };
 
   const renderCurrentView = () => {
     switch (currentView) {
       case "signup":
         return <SignUp onSignUpComplete={handleSignUpComplete} />;
-      case "userType":
-        return <UserTypeSelection onUserTypeSelected={handleUserTypeSelected} />;
       case "menteeQuestionnaire":
         return <Questionnaire onBackToSignUp={handleBackToSignUp} />;
       case "mentorQuestionnaire":
@@ -44,11 +48,7 @@ function App() {
     }
   };
 
-  return (
-    <div className="w-full h-full">
-      {renderCurrentView()}
-    </div>
-  );
+  return <div className="w-full h-full">{renderCurrentView()}</div>;
 }
 
 export default App;

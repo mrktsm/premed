@@ -9,14 +9,14 @@ interface MentorFormData {
   // Research & Experience
   researchField: string; // For physician scientists
   researchExperience: string; // Highest level
-  
+
   // Medical School Experience
   applicantTypeExperience: string; // Traditional, Non-traditional, First-gen, URM
 
   // Mentorship Approach
   mentorshipStyle: string; // Structured, Flexible, Mix of both
   comfortableTopics: string[]; // Multiple selections
-  
+
   // Communication & Availability
   communicationMode: string;
   meetingFrequency: string;
@@ -45,14 +45,14 @@ const MentorQuestionnaire = ({
     // Research & Experience
     researchField: "",
     researchExperience: "",
-    
+
     // Medical School Experience
     applicantTypeExperience: "",
 
     // Mentorship Approach
     mentorshipStyle: "",
     comfortableTopics: [],
-    
+
     // Communication & Availability
     communicationMode: "",
     meetingFrequency: "",
@@ -89,15 +89,23 @@ const MentorQuestionnaire = ({
       case 1:
         return formData.primarySpecialty !== "" && formData.careerStage !== "";
       case 2:
-        return formData.educationType !== "" && formData.applicantTypeExperience !== "";
+        return (
+          formData.educationType !== "" &&
+          formData.applicantTypeExperience !== ""
+        );
       case 3:
         return formData.mentorshipStyle !== "";
       case 4:
         return formData.comfortableTopics.length > 0;
       case 5:
-        return formData.communicationMode !== "" && formData.meetingFrequency !== "";
+        return (
+          formData.communicationMode !== "" && formData.meetingFrequency !== ""
+        );
       case 6:
-        return formData.genderIdentity !== "" && formData.similarIdentityImportance !== "";
+        return (
+          formData.genderIdentity !== "" &&
+          formData.similarIdentityImportance !== ""
+        );
       default:
         return true;
     }
@@ -140,7 +148,10 @@ const MentorQuestionnaire = ({
     { value: "basic-science", label: "Basic Science" },
     { value: "clinical-science", label: "Clinical Science" },
     { value: "translational-medicine", label: "Translational Medicine" },
-    { value: "public-health-epidemiology", label: "Public Health/Epidemiology" },
+    {
+      value: "public-health-epidemiology",
+      label: "Public Health/Epidemiology",
+    },
     { value: "health-policy", label: "Health Policy" },
     { value: "other", label: "Other" },
   ];
@@ -153,8 +164,14 @@ const MentorQuestionnaire = ({
   ];
 
   const mentorshipStyleOptions = [
-    { value: "structured", label: "Structured - scheduled topics and clear agenda" },
-    { value: "flexible", label: "Flexible - open ended discussions and mentee led" },
+    {
+      value: "structured",
+      label: "Structured - scheduled topics and clear agenda",
+    },
+    {
+      value: "flexible",
+      label: "Flexible - open ended discussions and mentee led",
+    },
     { value: "mix", label: "Mix of both" },
   ];
 
@@ -165,7 +182,10 @@ const MentorQuestionnaire = ({
     { value: "medical-coursework-exams", label: "Medical Coursework/Exams" },
     { value: "research-opportunities", label: "Research Opportunities" },
     { value: "work-life-balance", label: "Work-Life Balance" },
-    { value: "navigating-medical-school-residency", label: "Navigating Medical School/Residency" },
+    {
+      value: "navigating-medical-school-residency",
+      label: "Navigating Medical School/Residency",
+    },
   ];
 
   const communicationModeOptions = [
@@ -185,23 +205,38 @@ const MentorQuestionnaire = ({
 
   const geographicalOpennessOptions = [
     { value: "any-location", label: "Yes, any location is fine" },
-    { value: "same-state-region", label: "I would prefer someone in my state or region" },
+    {
+      value: "same-state-region",
+      label: "I would prefer someone in my state or region",
+    },
     { value: "same-city", label: "I would prefer someone in the same city" },
   ];
 
   const researchExperienceOptions = [
-    { value: "undergraduate-research-assistant", label: "Undergraduate research assistant" },
+    {
+      value: "undergraduate-research-assistant",
+      label: "Undergraduate research assistant",
+    },
     { value: "presented-at-conference", label: "Presented at a conference" },
     { value: "published-co-author", label: "Published a paper as a co-author" },
-    { value: "published-first-author", label: "Published a paper as a first author" },
-    { value: "principal-investigator", label: "Principal investigator on a grant" },
+    {
+      value: "published-first-author",
+      label: "Published a paper as a first author",
+    },
+    {
+      value: "principal-investigator",
+      label: "Principal investigator on a grant",
+    },
     { value: "none", label: "None of the above" },
     { value: "other", label: "Other" },
   ];
 
   const similarIdentityImportanceOptions = [
     { value: "important", label: "Yes, this is important to me" },
-    { value: "nice-bonus", label: "It would be a nice bonus, but not essential" },
+    {
+      value: "nice-bonus",
+      label: "It would be a nice bonus, but not essential",
+    },
     { value: "does-not-matter", label: "No, it does not matter to me" },
   ];
 
@@ -303,7 +338,8 @@ const MentorQuestionnaire = ({
 
               <div className="mt-6">
                 <div className="mb-2 text-sm font-medium text-gray-700">
-                  What type of applicant would you consider yourself to have been?
+                  What type of applicant would you consider yourself to have
+                  been?
                 </div>
                 <div className="flex flex-wrap items-center">
                   {applicantTypeExperienceOptions.map((option) => (
@@ -391,7 +427,8 @@ const MentorQuestionnaire = ({
             </h1>
             <div className="mt-6">
               <div className="mb-2 text-sm font-medium text-gray-700">
-                Which topics are you most comfortable giving advice in? (Select all that apply)
+                Which topics are you most comfortable giving advice in? (Select
+                all that apply)
               </div>
               <div className="mb-4 text-xs text-gray-500">
                 Selected: {formData.comfortableTopics.length}
@@ -408,11 +445,13 @@ const MentorQuestionnaire = ({
                     onClick={() => {
                       const currentTopics = formData.comfortableTopics;
                       const isSelected = currentTopics.includes(option.value);
-                      
+
                       if (isSelected) {
                         updateFormData(
                           "comfortableTopics",
-                          currentTopics.filter((topic) => topic !== option.value)
+                          currentTopics.filter(
+                            (topic) => topic !== option.value
+                          )
                         );
                       } else {
                         updateFormData("comfortableTopics", [
@@ -485,7 +524,8 @@ const MentorQuestionnaire = ({
 
               <div className="mt-6">
                 <div className="mb-2 text-sm font-medium text-gray-700">
-                  Are you open to mentoring a student from a different geographical location?
+                  Are you open to mentoring a student from a different
+                  geographical location?
                 </div>
                 <div className="flex flex-wrap items-center">
                   {geographicalOpennessOptions.map((option) => (
@@ -541,7 +581,8 @@ const MentorQuestionnaire = ({
 
               <div className="mt-6">
                 <div className="mb-2 text-sm font-medium text-gray-700">
-                  Are you open to mentoring a student who shares a similar identity to you?
+                  Are you open to mentoring a student who shares a similar
+                  identity to you?
                 </div>
                 <div className="flex flex-wrap items-center">
                   {similarIdentityImportanceOptions.map((option) => (
@@ -553,7 +594,10 @@ const MentorQuestionnaire = ({
                           : "bg-white border-gray-300 text-gray-800"
                       }`}
                       onClick={() =>
-                        updateFormData("similarIdentityImportance", option.value)
+                        updateFormData(
+                          "similarIdentityImportance",
+                          option.value
+                        )
                       }
                     >
                       <span className="font-medium">{option.label}</span>
@@ -602,7 +646,7 @@ const MentorQuestionnaire = ({
           {/* Step indicator in top-left */}
           <div className="mb-8">
             <span className="inline-block rounded-full border border-primary-200 bg-white/80 backdrop-blur-sm px-4 py-2 text-sm text-primary-700 font-medium shadow-sm">
-              Step {currentStep} of {totalSteps} - Mentor Registration
+              Step {currentStep} of {totalSteps}
             </span>
           </div>
 
@@ -657,7 +701,8 @@ const MentorQuestionnaire = ({
                   Why are we asking this?
                 </div>
                 <p className="leading-relaxed">
-                  This information helps us match you with mentees who would benefit most from your experience and expertise.
+                  This information helps us match you with mentees who would
+                  benefit most from your experience and expertise.
                 </p>
               </div>
             </div>
