@@ -1,11 +1,13 @@
 import { useState } from "react";
 import medicalImage from "../assets/ishutter-stock-image-test.jpg";
+import { useAuth } from "../contexts/AuthContext";
 
 interface SignUpProps {
   onSignUpComplete?: () => void;
 }
 
 const SignUp = ({ onSignUpComplete }: SignUpProps) => {
+  const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -60,13 +62,38 @@ const SignUp = ({ onSignUpComplete }: SignUpProps) => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Sign up with Supabase
+      const { data, error } = await signUp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName
+      );
 
-    setIsLoading(false);
+      if (error) {
+        // Handle auth errors
+        if (error.message.includes("already registered")) {
+          setErrors({ email: "This email is already registered" });
+        } else if (error.message.includes("Password")) {
+          setErrors({ password: error.message });
+        } else {
+          setErrors({ general: error.message });
+        }
+        return;
+      }
 
-    // Call the completion callback
-    onSignUpComplete?.();
+      if (data.user) {
+        // Success! User created and profile set up
+        console.log("User created successfully:", data.user);
+        onSignUpComplete?.();
+      }
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      setErrors({ general: "An unexpected error occurred. Please try again." });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -116,6 +143,13 @@ const SignUp = ({ onSignUpComplete }: SignUpProps) => {
               <span className="px-2 bg-white text-gray-500">or</span>
             </div>
           </div>
+
+          {/* General Error */}
+          {errors.general && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{errors.general}</p>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
