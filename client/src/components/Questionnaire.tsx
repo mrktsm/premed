@@ -1,42 +1,34 @@
 import { useState } from "react";
 import UniversitySelector from "./UniversitySelector";
+import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
+import { MatchingService } from "../services/matchingService";
 
 interface FormData {
-  // Academic Background
-  academicLevel: string; // Year of college, recent graduate, Master's student, or other
-  university: string;
-  hasUniversity: boolean;
-  firstGenStudent: boolean;
+  // Academic & Medical Interests (Weight: 7, 9, 6)
+  academicLevel: string; // Weight: 7
+  primarySpecialtyInterest: string; // Weight: 9
+  degreeTrackPreference: string; // Weight: 6
 
-  // Medical Interests
-  primarySpecialty: string; // Comprehensive medical specialty list
-  mdDoInterest: string; // MD, DO, or both
+  // Help Needed & Application Status (Weight: 9, 7, 7)
+  helpAreas: string[]; // Weight: 9 (up to 3)
+  mcatStatus: string; // Weight: 7
+  applicationTarget: string; // Weight: 7
 
-  // Personal Background
-  applicantType: string; // Traditional, Non-traditional, First-gen, URM
-  genderIdentity: string;
+  // Mentorship Preferences (Weight: 7, 7, 6, 5, 5)
+  preferredMentorshipStyle: string; // Weight: 7
+  communicationFrequency: string; // Weight: 7
+  communicationModes: string[]; // Weight: 6 (multi-select)
+  inPersonPreference: boolean | null; // Weight: 5
+  geographicPreference: string; // Weight: 5 (if in_person = true)
+  cityState: string; // If in_person = true
 
-  // Application Focus (up to 3 selections)
-  guidanceAreas: string[]; // MCAT, Personal Statements, Letters, Interview Skills, School List, Strategy, Gap Year
-
-  // Mentorship Goals (up to 2 selections)
-  mentorshipGoals: string[]; // General advice, specific component help, specialty insight, networking, emotional support
-
-  // Communication & Meeting Preferences
-  communicationMode: string; // Email, Video Calls, Phone, Text, In Person
-  meetingFrequency: string; // Weekly, Bi-monthly, Monthly, As needed
-  geographicalPreference: string; // Any location, same state/region, same city
-
-  // Research Experience & Interest
-  researchExperience: string; // None, research assistant, conference presentation, published
-  researchInterest: string; // Not interested, basic science, clinical, translational, public health, health policy, other
-
-  // Mentorship Preferences
-  similarIdentityPreference: string; // Important, nice bonus, doesn't matter
-
-  // MCAT & Timeline
-  mcatStatus: string; // Haven't started, studying, taken (awaiting), received scores
-  applicationTimeline: string; // Next 6 months, 1-2 years, 3+ years, not sure
+  // Background & Preferences (Weight: 7, 2, 2)
+  applicantBackground: string[]; // Weight: 7 (multi-select)
+  preferMentorSameGender: boolean | null; // Weight: 2
+  preferredGender: string; // Weight: 2 (if toggle ON)
+  preferAlumniMentor: boolean | null; // Weight: 2
+  preferredUniversity: string; // Weight: 2 (if toggle ON)
 }
 
 interface QuestionnaireProps {
@@ -46,45 +38,40 @@ interface QuestionnaireProps {
 const Questionnaire = ({
   onBackToSignUp: _onBackToSignUp,
 }: QuestionnaireProps) => {
+  const { user, loading } = useAuth();
+
+  // Debug logging
+  console.log("Auth state - user:", user, "loading:", loading);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    // Academic Background
+    // Academic & Medical Interests
     academicLevel: "",
-    university: "",
-    hasUniversity: false,
-    firstGenStudent: false,
+    primarySpecialtyInterest: "",
+    degreeTrackPreference: "",
 
-    // Medical Interests
-    primarySpecialty: "",
-    mdDoInterest: "",
-
-    // Personal Background
-    applicantType: "",
-    genderIdentity: "",
-
-    // Application Focus
-    guidanceAreas: [],
-    mentorshipGoals: [],
-
-    // Communication Preferences
-    communicationMode: "",
-    meetingFrequency: "",
-    geographicalPreference: "",
-
-    // Research & Experience
-    researchExperience: "",
-    researchInterest: "",
+    // Help Needed & Application Status
+    helpAreas: [],
+    mcatStatus: "",
+    applicationTarget: "",
 
     // Mentorship Preferences
-    similarIdentityPreference: "",
+    preferredMentorshipStyle: "",
+    communicationFrequency: "",
+    communicationModes: [],
+    inPersonPreference: null,
+    geographicPreference: "",
+    cityState: "",
 
-    // MCAT & Timeline
-    mcatStatus: "",
-    applicationTimeline: "",
+    // Background & Preferences
+    applicantBackground: [],
+    preferMentorSameGender: null,
+    preferredGender: "",
+    preferAlumniMentor: null,
+    preferredUniversity: "",
   });
 
-  const totalSteps = 6;
+  const totalSteps = 5;
 
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -108,31 +95,169 @@ const Questionnaire = ({
     }
   };
 
+  const handleSubmit = async () => {
+    // Use the auth context user instead of manual session checks
+    if (loading) {
+      console.log("Auth still loading, please wait...");
+      return;
+    }
+
+    if (!user) {
+      console.error("No authenticated user found");
+      alert("Please sign up first to use the questionnaire.");
+      window.location.href = "/";
+      return;
+    }
+
+    console.log("Using authenticated user:", user);
+
+    setIsLoading(true);
+
+    try {
+      // Save mentee data to Supabase
+      const { data, error } = await supabase.from("mentees").insert([
+        {
+          id: user.id,
+          first_name: user.user_metadata?.first_name || "",
+          last_name: user.user_metadata?.last_name || "",
+          academic_level: formData.academicLevel,
+          primary_specialty_interest: formData.primarySpecialtyInterest,
+          degree_track_preference: formData.degreeTrackPreference,
+          help_areas: formData.helpAreas,
+          mcat_status: formData.mcatStatus,
+          application_target: formData.applicationTarget,
+          preferred_mentorship_style: formData.preferredMentorshipStyle,
+          communication_frequency: formData.communicationFrequency,
+          communication_modes: formData.communicationModes,
+          in_person_preference: formData.inPersonPreference ?? false,
+          geographic_preference: formData.geographicPreference || null,
+          city_state: formData.cityState || null,
+          applicant_background: formData.applicantBackground,
+          prefer_mentor_same_gender: formData.preferMentorSameGender ?? false,
+          preferred_gender: formData.preferredGender || null,
+          prefer_alumni_mentor: formData.preferAlumniMentor ?? false,
+          preferred_university: formData.preferredUniversity || null,
+        },
+      ]);
+
+      if (error) {
+        console.error("Error saving mentee data:", error);
+        alert("Error saving your information. Please try again.");
+        return;
+      }
+
+      console.log("Mentee data saved successfully:", data);
+
+      // Run matching algorithm
+      console.log("Finding mentor matches...");
+      const menteeProfileData = {
+        id: user.id,
+        ...formData,
+        // Convert form data to match the expected structure
+        primary_specialty_interest: formData.primarySpecialtyInterest,
+        help_areas: formData.helpAreas,
+        application_target: formData.applicationTarget,
+        preferred_mentorship_style: formData.preferredMentorshipStyle,
+        communication_frequency: formData.communicationFrequency,
+        communication_modes: formData.communicationModes,
+        in_person_preference: formData.inPersonPreference ?? false,
+        geographic_preference: formData.geographicPreference,
+        city_state: formData.cityState,
+        applicant_background: formData.applicantBackground,
+        prefer_mentor_same_gender: formData.preferMentorSameGender ?? false,
+        preferred_gender: formData.preferredGender,
+        prefer_alumni_mentor: formData.preferAlumniMentor ?? false,
+        preferred_university: formData.preferredUniversity,
+        degree_track_preference: formData.degreeTrackPreference,
+      };
+
+      console.log("Mentee data for matching:", menteeProfileData);
+      const matches = await MatchingService.findMatches(menteeProfileData);
+
+      console.log(`Found ${matches.length} matches:`, matches);
+
+      if (matches.length > 0) {
+        // Save matches to database
+        await MatchingService.saveMatches(user.id, matches);
+
+        // Show detailed match results
+        const matchDetails = matches
+          .map(
+            (match, index) =>
+              `${index + 1}. ${match.mentor?.first_name || "Unknown"} ${
+                match.mentor?.last_name || ""
+              } - ${match.score}% match (${
+                match.mentor?.medical_specialty || "Unknown specialty"
+              })`
+          )
+          .join("\n");
+
+        alert(
+          `🎉 SUCCESS! Found ${matches.length} mentor matches:\n\n${matchDetails}\n\nCheck the console for detailed matching factors.`
+        );
+
+        console.log("=== DETAILED MATCH RESULTS ===");
+        matches.forEach((match, index) => {
+          console.log(
+            `${index + 1}. ${match.mentor?.first_name} ${
+              match.mentor?.last_name
+            }`
+          );
+          console.log(`   Score: ${match.score}%`);
+          console.log(`   Specialty: ${match.mentor?.medical_specialty}`);
+          console.log(`   Factors:`, match.factors);
+          console.log("---");
+        });
+      } else {
+        alert(
+          "Your profile has been created! We're working on finding the best mentor matches for you."
+        );
+      }
+
+      // TODO: Redirect to matches page or dashboard
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      alert("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
         return (
           formData.academicLevel !== "" &&
-          (formData.hasUniversity || formData.university.trim() !== "")
+          formData.primarySpecialtyInterest !== "" &&
+          formData.degreeTrackPreference !== ""
         );
       case 2:
-        return formData.primarySpecialty !== "" && formData.mdDoInterest !== "";
+        return (
+          formData.helpAreas.length > 0 &&
+          formData.helpAreas.length <= 3 &&
+          formData.mcatStatus !== "" &&
+          formData.applicationTarget !== ""
+        );
       case 3:
-        return formData.genderIdentity !== "" && formData.applicantType !== "";
+        return (
+          formData.preferredMentorshipStyle !== "" &&
+          formData.communicationFrequency !== "" &&
+          formData.communicationModes.length > 0
+        );
       case 4:
-        return (
-          formData.mentorshipGoals.length > 0 &&
-          formData.mentorshipGoals.length <= 2
-        );
+        return formData.applicantBackground.length > 0;
       case 5:
-        return (
-          formData.guidanceAreas.length > 0 &&
-          formData.guidanceAreas.length <= 3
-        );
+        // In-person and preference validation
+        if (
+          formData.inPersonPreference &&
+          formData.geographicPreference === ""
+        ) {
+          return false;
+        }
+        return true;
       case 6:
-        return (
-          formData.mcatStatus !== "" && formData.applicationTimeline !== ""
-        );
+        // Final review - all required fields should be filled
+        return true;
       default:
         return true;
     }
@@ -164,13 +289,13 @@ const Questionnaire = ({
     { value: "other", label: "Other/Undecided" },
   ];
 
-  const mdDoOptions = [
-    { value: "md", label: "MD Schools Only" },
-    { value: "do", label: "DO Schools Only" },
-    { value: "both", label: "Both MD and DO Schools" },
+  const degreeTrackOptions = [
+    { value: "md", label: "MD schools only" },
+    { value: "do", label: "DO schools only" },
+    { value: "both", label: "Both MD and DO" },
   ];
 
-  const guidanceAreaOptions = [
+  const helpAreaOptions = [
     { value: "mcat-preparation", label: "MCAT Preparation" },
     { value: "personal-statements", label: "Personal Statements" },
     { value: "letters-of-recommendation", label: "Letters of Recommendation" },
@@ -180,6 +305,17 @@ const Questionnaire = ({
       value: "general-application-strategy",
       label: "General Application Strategy",
     },
+    { value: "specialty-insight", label: "Specialty Insight" },
+    {
+      value: "networking-professional-connections",
+      label: "Networking/Professional Connections",
+    },
+    {
+      value: "emotional-support-motivation",
+      label: "Emotional Support & Motivation",
+    },
+    { value: "research-mentorship", label: "Research Mentorship" },
+    { value: "coursework-exams", label: "Coursework/Exams" },
     { value: "gap-year-planning", label: "Gap Year Planning" },
   ];
 
@@ -193,46 +329,52 @@ const Questionnaire = ({
     { value: "have-received-my-scores", label: "Have received my scores" },
   ];
 
-  const timelineOptions = [
-    { value: "next-6-months", label: "Next 6 months" },
-    { value: "in-1-2-years", label: "In 1-2 years" },
+  const applicationTargetOptions = [
+    { value: "next-6-months", label: "Next 6 months (this cycle)" },
+    { value: "in-1-2-years", label: "In 1-2 years (next cycle)" },
     { value: "in-3-plus-years", label: "In 3+ years" },
     { value: "not-sure", label: "Not sure" },
   ];
 
-  const applicantTypeOptions = [
+  const applicantBackgroundOptions = [
     { value: "traditional", label: "Traditional" },
     { value: "non-traditional", label: "Non-traditional" },
     { value: "first-gen", label: "First-generation college student" },
-    { value: "urm", label: "URM in medicine" },
+    { value: "urm", label: "Underrepresented in Medicine (URiM)" },
   ];
 
-  const mentorshipGoalOptions = [
-    { value: "general-advice", label: "General advice" },
-    {
-      value: "specific-application-component-help",
-      label: "Specific application component help",
-    },
-    {
-      value: "insight-into-medical-specialty",
-      label: "Insight into a medical specialty",
-    },
-    {
-      value: "networking-professional-connections",
-      label: "Networking/professional connections",
-    },
-    {
-      value: "emotional-support-motivation",
-      label: "Emotional support and motivation",
-    },
+  const mentorshipStyleOptions = [
+    { value: "structured", label: "Structured" },
+    { value: "flexible", label: "Flexible" },
+    { value: "mix", label: "Mix of both" },
   ];
 
-  const genderIdentityOptions = [
+  const communicationFrequencyOptions = [
+    { value: "weekly", label: "Weekly" },
+    { value: "bi-weekly", label: "Bi-weekly" },
+    { value: "monthly", label: "Monthly" },
+    { value: "as-needed", label: "As needed" },
+  ];
+
+  const communicationModeOptions = [
+    { value: "email", label: "Email" },
+    { value: "video-calls", label: "Video Calls" },
+    { value: "phone-calls", label: "Phone Calls" },
+    { value: "text-chat", label: "Text/Chat" },
+    { value: "in-person", label: "In-person" },
+  ];
+
+  const geographicPreferenceOptions = [
+    { value: "same-city", label: "Same city" },
+    { value: "same-state-region", label: "Same state/region" },
+    { value: "any-location", label: "Any location" },
+  ];
+
+  const genderOptions = [
     { value: "male", label: "Male" },
     { value: "female", label: "Female" },
     { value: "non-binary", label: "Non-Binary" },
-    { value: "other", label: "Other" },
-    { value: "prefer-not-to-say", label: "Prefer not to say" },
+    { value: "no-preference", label: "No preference" },
   ];
 
   const renderStep = () => {
@@ -241,7 +383,7 @@ const Questionnaire = ({
         return (
           <>
             <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              Academic Background
+              Academic & Medical Interests
             </h1>
             <div className="space-y-6">
               <div className="mt-6">
@@ -266,41 +408,50 @@ const Questionnaire = ({
                   ))}
                 </div>
               </div>
-              <div className="space-y-2">
-                <div>
-                  <label
-                    className="m-0 inline-flex items-center text-sm font-medium mb-2 text-gray-700"
-                    htmlFor="university-input"
-                  >
-                    Current University
-                  </label>
-                  <div className="flex space-x-2">
-                    <UniversitySelector
-                      value={formData.university}
-                      onChange={(value) => updateFormData("university", value)}
-                      disabled={formData.hasUniversity}
-                      placeholder="Search for your university..."
-                    />
-                  </div>
+
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What is your primary medical specialty of interest?
                 </div>
-                <div className="relative flex items-start">
-                  <div className="flex h-5 items-center">
-                    <input
-                      id="no-university-checkbox"
-                      type="checkbox"
-                      className="h-4 w-4 text-primary-500 focus:ring-primary-500 border-primary-300 rounded accent-primary-500"
-                      checked={formData.hasUniversity}
-                      onChange={(e) =>
-                        updateFormData("hasUniversity", e.target.checked)
+                <div className="flex flex-wrap items-center">
+                  {medicalSpecialtyOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.primarySpecialtyInterest === option.value
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() =>
+                        updateFormData("primarySpecialtyInterest", option.value)
                       }
-                    />
-                  </div>
-                  <label
-                    className="m-0 inline-flex items-center text-sm ml-2 text-gray-600"
-                    htmlFor="no-university-checkbox"
-                  >
-                    I'm not currently enrolled in university.
-                  </label>
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What is your degree track preference?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {degreeTrackOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.degreeTrackPreference === option.value
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() =>
+                        updateFormData("degreeTrackPreference", option.value)
+                      }
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -311,80 +462,44 @@ const Questionnaire = ({
         return (
           <>
             <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              Medical Interests
+              What do you want help with?
             </h1>
             <div className="space-y-6">
               <div className="mt-6">
                 <div className="mb-2 text-sm font-medium text-gray-700">
-                  What is your primary medical specialty of interest?
+                  Select up to 3 areas where you'd like mentorship (Weight: 9)
+                </div>
+                <div className="mb-4 text-xs text-gray-500">
+                  Selected: {formData.helpAreas.length}/3
                 </div>
                 <div className="flex flex-wrap items-center">
-                  {medicalSpecialtyOptions.map((option) => (
+                  {helpAreaOptions.map((option) => (
                     <button
                       key={option.value}
                       className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
-                        formData.primarySpecialty === option.value
+                        formData.helpAreas.includes(option.value)
                           ? "bg-white border-primary-500 text-gray-800"
                           : "bg-white border-gray-300 text-gray-800"
                       }`}
-                      onClick={() =>
-                        updateFormData("primarySpecialty", option.value)
-                      }
-                    >
-                      <span className="font-medium">{option.label}</span>
-                    </button>
-                  ))}
-                </div>
+                      onClick={() => {
+                        const currentAreas = formData.helpAreas;
+                        const isSelected = currentAreas.includes(option.value);
 
-                <div className="mt-6">
-                  <div className="mb-2 text-sm font-medium text-gray-700">
-                    Are you interested in MD Schools, DO Schools, or both?
-                  </div>
-                  <div className="flex flex-wrap items-center">
-                    {mdDoOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
-                          formData.mdDoInterest === option.value
-                            ? "bg-white border-primary-500 text-gray-800"
-                            : "bg-white border-gray-300 text-gray-800"
-                        }`}
-                        onClick={() =>
-                          updateFormData("mdDoInterest", option.value)
+                        if (isSelected) {
+                          updateFormData(
+                            "helpAreas",
+                            currentAreas.filter((area) => area !== option.value)
+                          );
+                        } else if (currentAreas.length < 3) {
+                          updateFormData("helpAreas", [
+                            ...currentAreas,
+                            option.value,
+                          ]);
                         }
-                      >
-                        <span className="font-medium">{option.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        );
-
-      case 3:
-        return (
-          <>
-            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              Personal Background
-            </h1>
-            <div className="space-y-6">
-              <div className="mt-6">
-                <div className="mb-2 text-sm font-medium text-gray-700">
-                  What is your gender identity?
-                </div>
-                <div className="flex flex-wrap items-center">
-                  {genderIdentityOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
-                        formData.genderIdentity === option.value
-                          ? "bg-white border-primary-500 text-gray-800"
-                          : "bg-white border-gray-300 text-gray-800"
-                      }`}
-                      onClick={() =>
-                        updateFormData("genderIdentity", option.value)
+                      }}
+                      disabled={
+                        !formData.helpAreas.includes(option.value) &&
+                        formData.helpAreas.length >= 3
                       }
                     >
                       <span className="font-medium">{option.label}</span>
@@ -393,146 +508,6 @@ const Questionnaire = ({
                 </div>
               </div>
 
-              <div className="mt-6">
-                <div className="mb-2 text-sm font-medium text-gray-700">
-                  What type of applicant would you consider yourself?
-                </div>
-                <div className="flex flex-wrap items-center">
-                  {applicantTypeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
-                        formData.applicantType === option.value
-                          ? "bg-white border-primary-500 text-gray-800"
-                          : "bg-white border-gray-300 text-gray-800"
-                      }`}
-                      onClick={() =>
-                        updateFormData("applicantType", option.value)
-                      }
-                    >
-                      <span className="font-medium">{option.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-        );
-
-      case 4:
-        return (
-          <>
-            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              Mentorship Goals
-            </h1>
-            <div className="mt-6">
-              <div className="mb-2 text-sm font-medium text-gray-700">
-                What are your primary mentorship goals? (Select up to 2)
-              </div>
-              <div className="mb-4 text-xs text-gray-500">
-                Selected: {formData.mentorshipGoals.length}/2
-              </div>
-              <div className="flex flex-wrap items-center">
-                {mentorshipGoalOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
-                      formData.mentorshipGoals.includes(option.value)
-                        ? "bg-white border-primary-500 text-gray-800"
-                        : "bg-white border-gray-300 text-gray-800"
-                    }`}
-                    onClick={() => {
-                      const currentGoals = formData.mentorshipGoals;
-                      const isSelected = currentGoals.includes(option.value);
-
-                      if (isSelected) {
-                        // Remove if already selected
-                        updateFormData(
-                          "mentorshipGoals",
-                          currentGoals.filter((goal) => goal !== option.value)
-                        );
-                      } else if (currentGoals.length < 2) {
-                        // Add if under limit
-                        updateFormData("mentorshipGoals", [
-                          ...currentGoals,
-                          option.value,
-                        ]);
-                      }
-                    }}
-                    disabled={
-                      !formData.mentorshipGoals.includes(option.value) &&
-                      formData.mentorshipGoals.length >= 2
-                    }
-                  >
-                    <span className="font-medium">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        );
-
-      case 5:
-        return (
-          <>
-            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              Application Guidance
-            </h1>
-            <div className="mt-6">
-              <div className="mb-2 text-sm font-medium text-gray-700">
-                What aspects of medical application are you most interested in
-                receiving guidance on? (Select up to 3)
-              </div>
-              <div className="mb-4 text-xs text-gray-500">
-                Selected: {formData.guidanceAreas.length}/3
-              </div>
-              <div className="flex flex-wrap items-center">
-                {guidanceAreaOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
-                      formData.guidanceAreas.includes(option.value)
-                        ? "bg-white border-primary-500 text-gray-800"
-                        : "bg-white border-gray-300 text-gray-800"
-                    }`}
-                    onClick={() => {
-                      const currentAreas = formData.guidanceAreas;
-                      const isSelected = currentAreas.includes(option.value);
-
-                      if (isSelected) {
-                        // Remove if already selected
-                        updateFormData(
-                          "guidanceAreas",
-                          currentAreas.filter((area) => area !== option.value)
-                        );
-                      } else if (currentAreas.length < 3) {
-                        // Add if under limit
-                        updateFormData("guidanceAreas", [
-                          ...currentAreas,
-                          option.value,
-                        ]);
-                      }
-                    }}
-                    disabled={
-                      !formData.guidanceAreas.includes(option.value) &&
-                      formData.guidanceAreas.length >= 3
-                    }
-                  >
-                    <span className="font-medium">{option.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        );
-
-      case 6:
-        return (
-          <>
-            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
-              MCAT & Application Timeline
-            </h1>
-            <div className="space-y-6">
               <div className="mt-6">
                 <div className="mb-2 text-sm font-medium text-gray-700">
                   What is your current MCAT status?
@@ -559,22 +534,319 @@ const Questionnaire = ({
                   When are you planning to apply to medical school?
                 </div>
                 <div className="flex flex-wrap items-center">
-                  {timelineOptions.map((option) => (
+                  {applicationTargetOptions.map((option) => (
                     <button
                       key={option.value}
                       className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
-                        formData.applicationTimeline === option.value
+                        formData.applicationTarget === option.value
                           ? "bg-white border-primary-500 text-gray-800"
                           : "bg-white border-gray-300 text-gray-800"
                       }`}
                       onClick={() =>
-                        updateFormData("applicationTimeline", option.value)
+                        updateFormData("applicationTarget", option.value)
                       }
                     >
                       <span className="font-medium">{option.label}</span>
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+          </>
+        );
+
+      case 3:
+        return (
+          <>
+            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
+              Mentorship Preferences
+            </h1>
+            <div className="space-y-6">
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What mentorship style do you prefer?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {mentorshipStyleOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.preferredMentorshipStyle === option.value
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() =>
+                        updateFormData("preferredMentorshipStyle", option.value)
+                      }
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  How often would you like to communicate with your mentor?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {communicationFrequencyOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.communicationFrequency === option.value
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() =>
+                        updateFormData("communicationFrequency", option.value)
+                      }
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What communication modes work for you? (Select all that apply)
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {communicationModeOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.communicationModes.includes(option.value)
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() => {
+                        const currentModes = formData.communicationModes;
+                        const isSelected = currentModes.includes(option.value);
+
+                        if (isSelected) {
+                          updateFormData(
+                            "communicationModes",
+                            currentModes.filter((mode) => mode !== option.value)
+                          );
+                        } else {
+                          updateFormData("communicationModes", [
+                            ...currentModes,
+                            option.value,
+                          ]);
+                        }
+                      }}
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        );
+
+      case 4:
+        return (
+          <>
+            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
+              Your Background
+            </h1>
+            <div className="space-y-6">
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  What type of applicant background describes you? (Select all
+                  that apply)
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {applicantBackgroundOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.applicantBackground.includes(option.value)
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() => {
+                        const currentBackground = formData.applicantBackground;
+                        const isSelected = currentBackground.includes(
+                          option.value
+                        );
+
+                        if (isSelected) {
+                          updateFormData(
+                            "applicantBackground",
+                            currentBackground.filter(
+                              (bg) => bg !== option.value
+                            )
+                          );
+                        } else {
+                          updateFormData("applicantBackground", [
+                            ...currentBackground,
+                            option.value,
+                          ]);
+                        }
+                      }}
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        );
+
+      case 5:
+        return (
+          <>
+            <h1 className="mt-2 text-4xl font-semibold text-gray-900">
+              Location & Preferences
+            </h1>
+            <div className="space-y-6">
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  Are you interested in meeting your mentor in person?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  <button
+                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                      formData.inPersonPreference === true
+                        ? "bg-white border-primary-500 text-gray-800"
+                        : "bg-white border-gray-300 text-gray-800"
+                    }`}
+                    onClick={() => updateFormData("inPersonPreference", true)}
+                  >
+                    <span className="font-medium">Yes</span>
+                  </button>
+                  <button
+                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                      formData.inPersonPreference === false
+                        ? "bg-white border-primary-500 text-gray-800"
+                        : "bg-white border-gray-300 text-gray-800"
+                    }`}
+                    onClick={() => updateFormData("inPersonPreference", false)}
+                  >
+                    <span className="font-medium">No</span>
+                  </button>
+                </div>
+              </div>
+
+              {formData.inPersonPreference && (
+                <>
+                  <div className="mt-6">
+                    <div className="mb-2 text-sm font-medium text-gray-700">
+                      What is your city and state? (Optional)
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.cityState}
+                      onChange={(e) =>
+                        updateFormData("cityState", e.target.value)
+                      }
+                      className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500 bg-white"
+                      placeholder="e.g., Boston, MA"
+                    />
+                  </div>
+
+                  <div className="mt-6">
+                    <div className="mb-2 text-sm font-medium text-gray-700">
+                      How open are you to mentors in different locations?
+                    </div>
+                    <div className="flex flex-wrap items-center">
+                      {geographicPreferenceOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                            formData.geographicPreference === option.value
+                              ? "bg-white border-primary-500 text-gray-800"
+                              : "bg-white border-gray-300 text-gray-800"
+                          }`}
+                          onClick={() =>
+                            updateFormData("geographicPreference", option.value)
+                          }
+                        >
+                          <span className="font-medium">{option.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  Do you have a gender preference for your mentor?
+                </div>
+                <div className="flex flex-wrap items-center">
+                  {genderOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                        formData.preferredGender === option.value
+                          ? "bg-white border-primary-500 text-gray-800"
+                          : "bg-white border-gray-300 text-gray-800"
+                      }`}
+                      onClick={() => {
+                        updateFormData("preferredGender", option.value);
+                        // Set the boolean based on whether they chose "no preference"
+                        updateFormData(
+                          "preferMentorSameGender",
+                          option.value !== "no-preference"
+                        );
+                      }}
+                    >
+                      <span className="font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="mb-2 text-sm font-medium text-gray-700">
+                  Would you prefer a mentor from your university/alma mater?
+                </div>
+                <div className="flex flex-wrap items-center mb-4">
+                  <button
+                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                      formData.preferAlumniMentor === true
+                        ? "bg-white border-primary-500 text-gray-800"
+                        : "bg-white border-gray-300 text-gray-800"
+                    }`}
+                    onClick={() => updateFormData("preferAlumniMentor", true)}
+                  >
+                    <span className="font-medium">Yes</span>
+                  </button>
+                  <button
+                    className={`m-1 flex h-full cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-2 shadow-sm focus:outline-none ${
+                      formData.preferAlumniMentor === false
+                        ? "bg-white border-primary-500 text-gray-800"
+                        : "bg-white border-gray-300 text-gray-800"
+                    }`}
+                    onClick={() => {
+                      updateFormData("preferAlumniMentor", false);
+                      updateFormData("preferredUniversity", "");
+                    }}
+                  >
+                    <span className="font-medium">No preference</span>
+                  </button>
+                </div>
+
+                {formData.preferAlumniMentor && (
+                  <div className="mt-4">
+                    <div className="mb-2 text-sm font-medium text-gray-700">
+                      Which university?
+                    </div>
+                    <UniversitySelector
+                      value={formData.preferredUniversity}
+                      onChange={(value) =>
+                        updateFormData("preferredUniversity", value)
+                      }
+                      placeholder="Search for your university..."
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -636,19 +908,19 @@ const Questionnaire = ({
             <div className="flex-1"></div>
 
             <button
-              disabled={!isStepValid() || isLoading}
-              onClick={
-                currentStep === totalSteps
-                  ? () => console.log("Form submitted:", formData)
-                  : handleNext
-              }
+              disabled={!isStepValid() || isLoading || loading}
+              onClick={currentStep === totalSteps ? handleSubmit : handleNext}
               className={`px-12 py-3 text-base rounded-lg font-medium focus:outline-none ${
-                isStepValid() && !isLoading
+                isStepValid() && !isLoading && !loading
                   ? "bg-primary-500 text-white hover:bg-primary-600 "
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
-              {currentStep === totalSteps ? "Complete" : "Next"}
+              {loading
+                ? "Loading..."
+                : currentStep === totalSteps
+                ? "Complete"
+                : "Next"}
             </button>
           </div>
 

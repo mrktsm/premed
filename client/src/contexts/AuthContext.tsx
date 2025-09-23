@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { User, Session } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 
 interface AuthContextType {
@@ -75,8 +75,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (error) throw error;
 
-      // If signup successful, create profile
+      // If signup successful, sign them in immediately and create profile
       if (data.user) {
+        // First create the profile
         const { error: profileError } = await supabase.from("profiles").insert([
           {
             id: data.user.id,
@@ -89,6 +90,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           console.error("Error creating profile:", profileError);
           // Don't throw here as auth user was created successfully
         }
+
+        // Now sign them in immediately
+        const { data: signInData, error: signInError } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+        if (signInError) {
+          console.error("Error signing in after signup:", signInError);
+          // Still return the signup data even if sign-in fails
+          return { data, error: null };
+        }
+
+        // Auth state will be updated automatically by the onAuthStateChange listener
+        console.log(
+          "User signed in successfully after signup:",
+          signInData.user
+        );
+        return { data: signInData, error: null };
       }
 
       return { data, error: null };

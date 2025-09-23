@@ -1,6 +1,7 @@
 import { useState } from "react";
 import medicalImage from "../assets/ishutter-stock-image-test.jpg";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "../lib/supabase";
 
 interface SignUpProps {
   onSignUpComplete?: () => void;
@@ -86,6 +87,25 @@ const SignUp = ({ onSignUpComplete }: SignUpProps) => {
       if (data.user) {
         // Success! User created and profile set up
         console.log("User created successfully:", data.user);
+
+        // Listen for auth state change event instead of polling
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === "SIGNED_IN" && session?.user) {
+            console.log("Auth state confirmed, redirecting...");
+            subscription.unsubscribe(); // Clean up listener
+            window.location.href = "/mentee";
+          }
+        });
+
+        // Fallback timeout in case the event doesn't fire
+        setTimeout(() => {
+          subscription.unsubscribe();
+          console.log("Fallback redirect after timeout");
+          window.location.href = "/mentee";
+        }, 3000);
+
         onSignUpComplete?.();
       }
     } catch (error: any) {
@@ -99,7 +119,9 @@ const SignUp = ({ onSignUpComplete }: SignUpProps) => {
   return (
     <div className="min-h-screen flex">
       {/* Left Form Section */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center bg-white">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center bg-white relative lg:pr-8">
+        {/* Separator Line */}
+        <div className="hidden lg:block absolute right-0 top-0 bottom-0 w-0.5 bg-gray-400 shadow-sm"></div>
         <div className="w-full max-w-md mx-auto px-8 py-20">
           {/* Header */}
           <div className="mb-8">
@@ -301,7 +323,7 @@ const SignUp = ({ onSignUpComplete }: SignUpProps) => {
       </div>
 
       {/* Right Image/Content Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden lg:pl-8">
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
