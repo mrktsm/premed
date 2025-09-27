@@ -18,7 +18,7 @@ const mockMentees = [
     firstName: "Emily",
     lastName: "Dalton",
     profileImage:
-      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
     currentRole: "Pre-med Student at Stanford",
     location: "Stanford, California",
     primaryInterest: "Cardiology",
@@ -125,7 +125,11 @@ export default function MentorFeed() {
           </div>
           <div className="flex items-center space-x-4">
             <MessageSquare className="w-5 h-5 text-primary-600" />
-            <div className="w-8 h-8 bg-primary-300 rounded-full"></div>
+            <img
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format"
+              alt="Your profile"
+              className="w-8 h-8 rounded-full object-cover border border-gray-200"
+            />
           </div>
         </div>
       </header>
@@ -291,23 +295,33 @@ export default function MentorFeed() {
                 <div className="flex">
                   {/* Profile Image */}
                   <div className="flex-shrink-0 mr-4">
-                    <img
-                      src={mentee.profileImage}
-                      alt={`${mentee.firstName} ${mentee.lastName}`}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
+                    <button
+                      onClick={() => setSelectedMentee(mentee.id)}
+                      className="hover:opacity-80 transition-opacity"
+                    >
+                      <img
+                        src={mentee.profileImage}
+                        alt={`${mentee.firstName} ${mentee.lastName}`}
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                    </button>
                   </div>
 
                   {/* Main Content */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {mentee.firstName} {mentee.lastName}
-                          <span className="ml-2 text-sm text-gray-500">
-                            2nd
-                          </span>
-                        </h3>
+                        <button
+                          onClick={() => setSelectedMentee(mentee.id)}
+                          className="text-left hover:text-primary-600 transition-colors"
+                        >
+                          <h3 className="text-lg font-medium text-gray-900">
+                            {mentee.firstName} {mentee.lastName}
+                            <span className="ml-2 text-sm text-gray-500">
+                              2nd
+                            </span>
+                          </h3>
+                        </button>
                         <p className="text-gray-600 text-sm mb-1">
                           {mentee.currentRole}
                         </p>
@@ -352,44 +366,22 @@ export default function MentorFeed() {
                       </div>
                     </div>
 
-                    {/* Match Reasons */}
-                    <div className="mt-3">
-                      <p className="text-sm text-green-600 font-medium mb-1">
-                        Why matched:
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {mentee.matchReasons.map((reason) => (
-                          <span key={reason} className="text-xs text-green-700">
-                            ✓ {reason}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
                     {/* Stats and Actions */}
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <span>{mentee.connections} Mentor connections</span>
                         <span>{mentee.followers} Following mentors</span>
-                        <span className="flex items-center text-green-600">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                          Open to new mentorship
-                        </span>
                       </div>
 
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-3">
                         <button
-                          className="bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 transition-colors"
+                          className="bg-primary-600 text-white px-6 py-2 text-sm font-medium rounded hover:bg-primary-700 transition-colors"
                           onClick={() => setSelectedMentee(mentee.id)}
                         >
-                          Accept as Mentee
+                          Accept
                         </button>
-                        <button className="border border-blue-600 text-blue-600 px-4 py-2 text-sm hover:bg-blue-50 transition-colors">
+                        <button className="border border-primary-600 text-primary-600 px-6 py-2 text-sm font-medium rounded hover:bg-primary-50 transition-colors">
                           Pass
-                        </button>
-                        <button className="text-primary-600 text-sm hover:underline flex items-center">
-                          View Full Profile
-                          <ExternalLink className="w-3 h-3 ml-1" />
                         </button>
                       </div>
                     </div>
@@ -402,19 +394,19 @@ export default function MentorFeed() {
           {/* Pagination */}
           <div className="mt-8 flex items-center justify-center px-6 pb-6">
             <nav className="flex space-x-2">
-              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
+              <button className="px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50 rounded">
                 Previous
               </button>
-              <button className="px-3 py-2 bg-blue-600 text-white text-sm">
+              <button className="w-10 h-10 bg-primary-600 text-white text-sm rounded flex items-center justify-center">
                 1
               </button>
-              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
+              <button className="w-10 h-10 border border-gray-300 text-sm hover:bg-gray-50 rounded flex items-center justify-center">
                 2
               </button>
-              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
+              <button className="w-10 h-10 border border-gray-300 text-sm hover:bg-gray-50 rounded flex items-center justify-center">
                 3
               </button>
-              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
+              <button className="px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50 rounded">
                 Next
               </button>
             </nav>
