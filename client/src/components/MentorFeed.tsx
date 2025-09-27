@@ -157,15 +157,15 @@ export default function MentorFeed() {
         {/* Sidebar */}
         <div className="w-80 bg-white border-r border-gray-200 min-h-screen p-6">
           <div className="mb-6">
-            <h3 className="font-medium text-gray-900 mb-4">
-              Showing results for
-            </h3>
-            <MoreHorizontal className="w-5 h-5 text-gray-400 mb-4" />
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-medium text-gray-900">Showing results for</h3>
+              <MoreHorizontal className="w-5 h-5 text-gray-400" />
+            </div>
           </div>
 
           {/* Specialty Filter */}
           <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-2">
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
               Medical Specialty
             </h4>
             <div className="space-y-2">
@@ -183,7 +183,9 @@ export default function MentorFeed() {
 
           {/* Locations */}
           <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-2">Locations</h4>
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+              Locations
+            </h4>
             <div className="space-y-2">
               <div className="flex items-center">
                 <div className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500">
@@ -199,7 +201,9 @@ export default function MentorFeed() {
 
           {/* Academic Level */}
           <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-2">Academic Level</h4>
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+              Academic Level
+            </h4>
             <div className="space-y-1">
               <div className="text-primary-600 text-sm cursor-pointer hover:underline">
                 Pre-med (156)
@@ -215,17 +219,21 @@ export default function MentorFeed() {
 
           {/* Help Areas */}
           <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-2">Help Areas</h4>
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+              Help Areas
+            </h4>
             <input
               type="text"
               placeholder="Enter a help area..."
-              className="w-full px-3 py-1 border border-gray-300 text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-blue-500"
             />
           </div>
 
           {/* Universities */}
           <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-2">Universities</h4>
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+              Universities
+            </h4>
             <div className="text-primary-600 text-sm cursor-pointer hover:underline mb-2">
               Stanford University
             </div>
@@ -236,7 +244,7 @@ export default function MentorFeed() {
 
           {/* Application Timeline */}
           <div className="mb-6">
-            <h4 className="font-medium text-gray-700 mb-2">
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
               Application Timeline
             </h4>
             <div className="text-sm">
@@ -249,9 +257,9 @@ export default function MentorFeed() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1">
+        <div className="flex-1 bg-white">
           {/* Results Header */}
-          <div className="flex bg-white border-b border-gray-200">
+          <div className="flex border-b border-gray-200">
             <button className="flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white">
               <div className="text-2xl font-bold text-gray-900">83</div>
               <div className="text-sm text-gray-600">available mentees</div>
@@ -270,7 +278,7 @@ export default function MentorFeed() {
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-sm text-gray-600 px-6 py-3 bg-white">
+          <div className="flex items-center justify-between text-sm text-gray-600 px-6 py-3">
             <span>83 results • Sorted by relevance</span>
             <span>1 - 25</span>
           </div>
