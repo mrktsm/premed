@@ -102,37 +102,36 @@ export default function MentorFeed() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-[#0a66c2] text-white px-6 py-3">
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center space-x-8">
-            <h1 className="text-xl font-semibold">RECRUITER</h1>
-            <nav className="flex space-x-6 text-sm">
-              <span className="text-blue-200 border-b-2 border-white pb-2">
-                PROJECTS
+          <div className="flex items-center">
+            <nav className="flex items-center space-x-8 text-sm">
+              <span className="text-primary-600 border-b-2 border-primary-600 font-medium">
+                FEED
               </span>
-              <span className="text-blue-200 hover:text-white cursor-pointer">
-                CLIPBOARD
+              <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
+                MATCHES
               </span>
-              <span className="text-blue-200 hover:text-white cursor-pointer">
-                JOBS
+              <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
+                MESSAGES
               </span>
-              <span className="text-blue-200 hover:text-white cursor-pointer">
+              <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                 REPORTS
               </span>
-              <span className="text-blue-200 hover:text-white cursor-pointer">
+              <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                 MORE
               </span>
             </nav>
           </div>
           <div className="flex items-center space-x-4">
-            <MessageSquare className="w-5 h-5" />
-            <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+            <MessageSquare className="w-5 h-5 text-primary-600" />
+            <div className="w-8 h-8 bg-primary-300 rounded-full"></div>
           </div>
         </div>
       </header>
 
       {/* Search Bar */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center space-x-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -141,10 +140,10 @@ export default function MentorFeed() {
               placeholder="Start a new search..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:border-blue-500"
             />
           </div>
-          <div className="text-sm text-blue-600 space-x-2">
+          <div className="text-sm text-primary-600 space-x-2">
             <span className="hover:underline cursor-pointer">Advanced</span>
             <span>•</span>
             <span className="hover:underline cursor-pointer">Saved</span>
@@ -156,7 +155,7 @@ export default function MentorFeed() {
 
       <div className="max-w-7xl mx-auto flex">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r min-h-screen p-6">
+        <div className="w-80 bg-white border-r border-gray-200 min-h-screen p-6">
           <div className="mb-6">
             <h3 className="font-medium text-gray-900 mb-4">
               Showing results for
@@ -171,12 +170,12 @@ export default function MentorFeed() {
             </h4>
             <div className="space-y-2">
               <div className="flex items-center">
-                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                <div className="bg-blue-100 text-blue-800 px-2 py-1 text-sm border border-blue-200">
                   Cardiology
                   <button className="ml-2 text-blue-600">×</button>
                 </div>
               </div>
-              <button className="text-blue-600 text-sm hover:underline">
+              <button className="text-primary-600 text-sm hover:underline">
                 + Add specialty
               </button>
             </div>
@@ -187,12 +186,12 @@ export default function MentorFeed() {
             <h4 className="font-medium text-gray-700 mb-2">Locations</h4>
             <div className="space-y-2">
               <div className="flex items-center">
-                <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                <div className="bg-blue-100 text-blue-800 px-2 py-1 text-sm border border-blue-200">
                   Greater Bay Area
                   <button className="ml-2 text-blue-600">×</button>
                 </div>
               </div>
-              <div className="text-blue-600 text-sm cursor-pointer hover:underline">
+              <div className="text-primary-600 text-sm cursor-pointer hover:underline">
                 San Francisco Bay Area, Greater New York...
               </div>
             </div>
@@ -202,13 +201,13 @@ export default function MentorFeed() {
           <div className="mb-6">
             <h4 className="font-medium text-gray-700 mb-2">Academic Level</h4>
             <div className="space-y-1">
-              <div className="text-blue-600 text-sm cursor-pointer hover:underline">
+              <div className="text-primary-600 text-sm cursor-pointer hover:underline">
                 Pre-med (156)
               </div>
-              <div className="text-blue-600 text-sm cursor-pointer hover:underline">
+              <div className="text-primary-600 text-sm cursor-pointer hover:underline">
                 Post-bacc (89)
               </div>
-              <div className="text-blue-600 text-sm cursor-pointer hover:underline">
+              <div className="text-primary-600 text-sm cursor-pointer hover:underline">
                 Gap year (67)
               </div>
             </div>
@@ -220,17 +219,17 @@ export default function MentorFeed() {
             <input
               type="text"
               placeholder="Enter a help area..."
-              className="w-full px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-1 border border-gray-300 text-sm focus:outline-none focus:border-blue-500"
             />
           </div>
 
           {/* Universities */}
           <div className="mb-6">
             <h4 className="font-medium text-gray-700 mb-2">Universities</h4>
-            <div className="text-blue-600 text-sm cursor-pointer hover:underline mb-2">
+            <div className="text-primary-600 text-sm cursor-pointer hover:underline mb-2">
               Stanford University
             </div>
-            <button className="text-blue-600 text-sm hover:underline">
+            <button className="text-primary-600 text-sm hover:underline">
               + Add universities or boolean
             </button>
           </div>
@@ -250,46 +249,44 @@ export default function MentorFeed() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6">
+        <div className="flex-1">
           {/* Results Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">42,798</div>
-                <div className="text-sm text-gray-600">total candidates</div>
+          <div className="flex bg-white border-b border-gray-200">
+            <button className="flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white">
+              <div className="text-2xl font-bold text-gray-900">42,798</div>
+              <div className="text-sm text-gray-600">total candidates</div>
+            </button>
+            <button className="flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white border-b-4 border-b-primary-600">
+              <div className="text-2xl font-bold text-primary-600">83</div>
+              <div className="text-sm text-primary-600">
+                open to new mentorship
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">83</div>
-                <div className="text-sm text-blue-600">
-                  open to new opportunities
-                </div>
+            </button>
+            <button className="flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white">
+              <div className="text-2xl font-bold text-gray-900">229</div>
+              <div className="text-sm text-gray-600">
+                have company connections
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">229</div>
-                <div className="text-sm text-gray-600">
-                  have company connections
-                </div>
+            </button>
+            <button className="flex-1 text-center hover:bg-gray-50 py-4 bg-white">
+              <div className="text-2xl font-bold text-gray-900">904</div>
+              <div className="text-sm text-gray-600">
+                engaged with your Talent Brand
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">904</div>
-                <div className="text-sm text-gray-600">
-                  engaged with your Talent Brand
-                </div>
-              </div>
-            </div>
-            <div className="text-sm text-gray-600">1 - 25</div>
+            </button>
           </div>
 
-          <div className="text-sm text-gray-600 mb-4">
-            83 results • Sorted by relevance
+          <div className="flex items-center justify-between text-sm text-gray-600 px-6 py-3 bg-white">
+            <span>83 results • Sorted by relevance</span>
+            <span>1 - 25</span>
           </div>
 
           {/* Mentee Cards */}
-          <div className="space-y-6">
+          <div className="space-y-0">
             {mockMentees.map((mentee) => (
               <div
                 key={mentee.id}
-                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                className="bg-white border-t border-gray-200 p-6 hover:shadow-sm transition-shadow"
               >
                 <div className="flex">
                   {/* Profile Image */}
@@ -382,15 +379,15 @@ export default function MentorFeed() {
 
                       <div className="flex space-x-2">
                         <button
-                          className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+                          className="bg-blue-600 text-white px-4 py-2 text-sm hover:bg-blue-700 transition-colors"
                           onClick={() => setSelectedMentee(mentee.id)}
                         >
                           Accept as Mentee
                         </button>
-                        <button className="border border-blue-600 text-blue-600 px-4 py-2 rounded text-sm hover:bg-blue-50 transition-colors">
+                        <button className="border border-blue-600 text-blue-600 px-4 py-2 text-sm hover:bg-blue-50 transition-colors">
                           Pass
                         </button>
-                        <button className="text-blue-600 text-sm hover:underline flex items-center">
+                        <button className="text-primary-600 text-sm hover:underline flex items-center">
                           View Full Profile
                           <ExternalLink className="w-3 h-3 ml-1" />
                         </button>
@@ -403,21 +400,21 @@ export default function MentorFeed() {
           </div>
 
           {/* Pagination */}
-          <div className="mt-8 flex items-center justify-center">
+          <div className="mt-8 flex items-center justify-center px-6 pb-6">
             <nav className="flex space-x-2">
-              <button className="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">
+              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
                 Previous
               </button>
-              <button className="px-3 py-2 bg-blue-600 text-white rounded text-sm">
+              <button className="px-3 py-2 bg-blue-600 text-white text-sm">
                 1
               </button>
-              <button className="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">
+              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
                 2
               </button>
-              <button className="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">
+              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
                 3
               </button>
-              <button className="px-3 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50">
+              <button className="px-3 py-2 border border-gray-300 text-sm hover:bg-gray-50">
                 Next
               </button>
             </nav>
@@ -426,7 +423,7 @@ export default function MentorFeed() {
 
         {/* Right Panel - Selected Mentee Details */}
         {selectedMentee && (
-          <div className="w-80 bg-white border-l p-6">
+          <div className="w-80 bg-white border-l border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium">Mentee Details</h3>
               <button
@@ -480,13 +477,13 @@ export default function MentorFeed() {
                   </div>
 
                   <div className="mt-6 space-y-2">
-                    <button className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                    <button className="w-full bg-blue-600 text-white py-2 hover:bg-blue-700">
                       Accept as Mentee
                     </button>
-                    <button className="w-full border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50">
+                    <button className="w-full border border-gray-300 text-gray-700 py-2 hover:bg-gray-50">
                       Send Message First
                     </button>
-                    <button className="w-full text-red-600 py-2 rounded hover:bg-red-50">
+                    <button className="w-full text-red-600 py-2 hover:bg-red-50">
                       Pass on This Mentee
                     </button>
                   </div>
