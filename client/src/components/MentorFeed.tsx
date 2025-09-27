@@ -170,9 +170,9 @@ export default function MentorFeed() {
             </h4>
             <div className="space-y-2">
               <div className="flex items-center">
-                <div className="bg-blue-100 text-blue-800 px-2 py-1 text-sm border border-blue-200">
+                <div className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500">
                   Cardiology
-                  <button className="ml-2 text-blue-600">×</button>
+                  <button className="ml-2 text-primary-600">×</button>
                 </div>
               </div>
               <button className="text-primary-600 text-sm hover:underline">
@@ -186,9 +186,9 @@ export default function MentorFeed() {
             <h4 className="font-medium text-gray-700 mb-2">Locations</h4>
             <div className="space-y-2">
               <div className="flex items-center">
-                <div className="bg-blue-100 text-blue-800 px-2 py-1 text-sm border border-blue-200">
+                <div className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500">
                   Greater Bay Area
-                  <button className="ml-2 text-blue-600">×</button>
+                  <button className="ml-2 text-primary-600">×</button>
                 </div>
               </div>
               <div className="text-primary-600 text-sm cursor-pointer hover:underline">
@@ -344,7 +344,7 @@ export default function MentorFeed() {
                         {mentee.helpAreas.slice(0, 3).map((area) => (
                           <span
                             key={area}
-                            className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs"
+                            className="bg-primary-100 text-primary-800 px-2 py-1 rounded text-xs border border-primary-500"
                           >
                             {area}
                           </span>
