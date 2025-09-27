@@ -2,9 +2,14 @@ import { useState, useEffect } from "react";
 import Questionnaire from "./components/Questionnaire";
 import MentorQuestionnaire from "./components/MentorQuestionnaire";
 import SignUp from "./components/SignUp";
+import MentorFeed from "./components/MentorFeed";
 import "./App.css";
 
-type ViewType = "signup" | "menteeQuestionnaire" | "mentorQuestionnaire";
+type ViewType =
+  | "signup"
+  | "menteeQuestionnaire"
+  | "mentorQuestionnaire"
+  | "mentorFeed";
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>("signup");
@@ -16,6 +21,8 @@ function App() {
       setCurrentView("mentorQuestionnaire");
     } else if (path === "/mentee") {
       setCurrentView("menteeQuestionnaire");
+    } else if (path === "/mentor-feed") {
+      setCurrentView("mentorFeed");
     } else if (path === "/signup") {
       setCurrentView("signup");
     } else {
@@ -43,6 +50,8 @@ function App() {
         return <Questionnaire onBackToSignUp={handleBackToSignUp} />;
       case "mentorQuestionnaire":
         return <MentorQuestionnaire onBackToSignUp={handleBackToSignUp} />;
+      case "mentorFeed":
+        return <MentorFeed />;
       default:
         return <SignUp onSignUpComplete={handleSignUpComplete} />;
     }
