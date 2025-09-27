@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import type { MenteeProfile, MentorProfile } from "../lib/supabase";
+import type { MentorProfile } from "../lib/supabase";
 
 interface MatchScore {
   mentorId: string;

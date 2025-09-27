@@ -1,14 +1,10 @@
 import { useState } from "react";
 import {
   Search,
-  Filter,
   MoreHorizontal,
   MapPin,
-  Briefcase,
-  Calendar,
   MessageSquare,
-  Heart,
-  ExternalLink,
+  Bookmark,
 } from "lucide-react";
 
 // Mock data for now - will be replaced with real Supabase data
@@ -150,9 +146,9 @@ export default function MentorFeed() {
           <div className="text-sm text-primary-600 space-x-2">
             <span className="hover:underline cursor-pointer">Advanced</span>
             <span>•</span>
-            <span className="hover:underline cursor-pointer">Saved</span>
-            <span>•</span>
-            <span className="hover:underline cursor-pointer">History</span>
+            <span className="hover:underline cursor-pointer">
+              Saved / History
+            </span>
           </div>
         </div>
       </div>
@@ -257,26 +253,20 @@ export default function MentorFeed() {
           {/* Results Header */}
           <div className="flex bg-white border-b border-gray-200">
             <button className="flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white">
-              <div className="text-2xl font-bold text-gray-900">42,798</div>
-              <div className="text-sm text-gray-600">total candidates</div>
+              <div className="text-2xl font-bold text-gray-900">83</div>
+              <div className="text-sm text-gray-600">available mentees</div>
             </button>
             <button className="flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white border-b-4 border-b-primary-600">
-              <div className="text-2xl font-bold text-primary-600">83</div>
-              <div className="text-sm text-primary-600">
-                open to new mentorship
-              </div>
+              <div className="text-2xl font-bold text-primary-600">12</div>
+              <div className="text-sm text-primary-600">your matches</div>
             </button>
             <button className="flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white">
-              <div className="text-2xl font-bold text-gray-900">229</div>
-              <div className="text-sm text-gray-600">
-                have company connections
-              </div>
+              <div className="text-2xl font-bold text-gray-900">8</div>
+              <div className="text-sm text-gray-600">new this week</div>
             </button>
             <button className="flex-1 text-center hover:bg-gray-50 py-4 bg-white">
-              <div className="text-2xl font-bold text-gray-900">904</div>
-              <div className="text-sm text-gray-600">
-                engaged with your Talent Brand
-              </div>
+              <div className="text-2xl font-bold text-gray-900">5</div>
+              <div className="text-sm text-gray-600">saved mentees</div>
             </button>
           </div>
 
@@ -333,8 +323,8 @@ export default function MentorFeed() {
 
                       {/* Actions */}
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:bg-blue-50 p-2 rounded">
-                          <Heart className="w-4 h-4" />
+                        <button className="text-primary-600 hover:bg-primary-50 p-2 rounded">
+                          <Bookmark className="w-4 h-4" />
                         </button>
                         <button className="text-gray-400 hover:bg-gray-50 p-2 rounded">
                           <MoreHorizontal className="w-4 h-4" />
