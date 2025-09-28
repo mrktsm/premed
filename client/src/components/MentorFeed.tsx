@@ -391,7 +391,7 @@ export default function MentorFeed() {
 
       <div className="max-w-7xl mx-auto flex">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r border-gray-200 min-h-screen p-6">
+        <div className="w-80 bg-white border-l border-r border-gray-200 min-h-screen p-6">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-medium text-gray-900">Showing results for</h3>
@@ -574,7 +574,7 @@ export default function MentorFeed() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 bg-white">
+        <div className="flex-1 bg-white border-r border-gray-200">
           {/* Results Header */}
           <div className="flex border-b border-gray-200">
             <button
