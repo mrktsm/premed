@@ -58,7 +58,7 @@ export default function MentorFeed() {
   const [mentees, setMentees] = useState<MenteeProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>("your-matches");
+  const [activeTab, setActiveTab] = useState<string>("available-mentees");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Show 5 mentees per page
   const headerRef = useRef<HTMLElement>(null);
