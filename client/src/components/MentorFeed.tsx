@@ -50,18 +50,57 @@ const formatAcademicLevel = (level: string) => {
   return levelMap[level] || level;
 };
 
-// Medical specialties list
+// Helper function to format locations
+const formatLocation = (location: string) => {
+  const stateMap: { [key: string]: string } = {
+    CA: "California",
+    NY: "New York",
+    TX: "Texas",
+    FL: "Florida",
+    IL: "Illinois",
+    PA: "Pennsylvania",
+    MA: "Massachusetts",
+    WA: "Washington",
+    GA: "Georgia",
+    NC: "North Carolina",
+    MI: "Michigan",
+    MD: "Maryland",
+    NJ: "New Jersey",
+    CT: "Connecticut",
+  };
+  return stateMap[location] || location;
+};
+
+// Medical specialties list (ordered by popularity among pre-med students)
 const medicalSpecialties = [
-  "cardiology",
-  "dermatology",
-  "emergency-medicine",
-  "family-medicine",
-  "internal-medicine",
-  "neurology",
-  "orthopedic-surgery",
-  "pediatrics",
-  "psychiatry",
-  "radiology",
+  "internal-medicine", // Most common specialty
+  "family-medicine", // Primary care focus
+  "pediatrics", // Popular with students
+  "emergency-medicine", // High interest specialty
+  "cardiology", // Competitive/prestigious
+  "dermatology", // Highly competitive
+  "orthopedic-surgery", // Surgical specialty
+  "neurology", // Growing interest
+  "psychiatry", // Mental health focus
+  "radiology", // Diagnostic specialty
+];
+
+// Common locations list (ordered by popularity for pre-med students)
+const commonLocations = [
+  "CA", // California - most medical schools
+  "NY", // New York - high concentration
+  "TX", // Texas - large state, many schools
+  "MA", // Massachusetts - Boston area
+  "PA", // Pennsylvania - Philadelphia area
+  "FL", // Florida - growing medical programs
+  "IL", // Illinois - Chicago area
+  "NC", // North Carolina - Research Triangle
+  "MD", // Maryland - Baltimore area
+  "WA", // Washington - Seattle area
+  "GA", // Georgia - Atlanta area
+  "MI", // Michigan - Detroit area
+  "NJ", // New Jersey - NYC metro
+  "CT", // Connecticut - Yale area
 ];
 
 export default function MentorFeed() {
@@ -83,13 +122,18 @@ export default function MentorFeed() {
   const [specialtyQuery, setSpecialtyQuery] = useState("");
   const [isSpecialtyDropdownOpen, setIsSpecialtyDropdownOpen] = useState(false);
 
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [locationQuery, setLocationQuery] = useState("");
+  const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
+
   // Server-side search function
   const performSearch = async (
     query: string,
     page: number = 1,
-    specialties: string[] = selectedSpecialties
+    specialties: string[] = selectedSpecialties,
+    locations: string[] = selectedLocations
   ) => {
-    if (!query.trim() && specialties.length === 0) {
+    if (!query.trim() && specialties.length === 0 && locations.length === 0) {
       setSearchResults([]);
       setTotalSearchResults(0);
       setIsSearching(false);
@@ -119,6 +163,15 @@ export default function MentorFeed() {
       // Add specialty filters
       if (specialties.length > 0) {
         searchQuery = searchQuery.in("primary_specialty_interest", specialties);
+      }
+
+      // Add location filters (search for state codes in city_state field)
+      if (locations.length > 0) {
+        // Create OR conditions for each state code
+        const locationConditions = locations
+          .map((state) => `city_state.ilike.%${state}%`)
+          .join(",");
+        searchQuery = searchQuery.or(locationConditions);
       }
 
       // Add pagination and ordering
@@ -186,7 +239,7 @@ export default function MentorFeed() {
 
   const filteredSpecialties =
     specialtyQuery === ""
-      ? availableSpecialties
+      ? availableSpecialties.slice(0, 6) // Show only top 6 most popular specialties when no search
       : availableSpecialties.filter((specialty) =>
           formatSpecialty(specialty)
             .toLowerCase()
@@ -201,9 +254,43 @@ export default function MentorFeed() {
     }
   };
 
+  // Location filter functions
+  const availableLocations = commonLocations.filter(
+    (location) => !selectedLocations.includes(location)
+  );
+
+  const filteredLocations =
+    locationQuery === ""
+      ? availableLocations.slice(0, 5) // Show only top 5 most popular states when no search
+      : availableLocations.filter((location) =>
+          formatLocation(location)
+            .toLowerCase()
+            .includes(locationQuery.toLowerCase())
+        );
+
+  const addLocation = (location: string) => {
+    if (location && !selectedLocations.includes(location)) {
+      setSelectedLocations((prev) => [...prev, location]);
+      setLocationQuery("");
+      setCurrentPage(1);
+    }
+  };
+
+  const toggleLocation = (location: string) => {
+    setSelectedLocations((prev) => prev.filter((l) => l !== location));
+    setCurrentPage(1);
+  };
+
+  const clearLocationFilters = () => {
+    setSelectedLocations([]);
+    setCurrentPage(1);
+  };
+
   // Determine which data to use: search results or filtered mentees
   const isActiveSearch =
-    searchTerm.trim().length > 0 || selectedSpecialties.length > 0;
+    searchTerm.trim().length > 0 ||
+    selectedSpecialties.length > 0 ||
+    selectedLocations.length > 0;
   const allFilteredMentees = isActiveSearch
     ? searchResults
     : getFilteredMentees();
@@ -234,7 +321,7 @@ export default function MentorFeed() {
 
     // If we're in search mode, fetch search results for the new page
     if (isActiveSearch) {
-      performSearch(searchTerm, page, selectedSpecialties);
+      performSearch(searchTerm, page, selectedSpecialties, selectedLocations);
     }
   };
 
@@ -247,7 +334,11 @@ export default function MentorFeed() {
 
   // Debounced search effect
   useEffect(() => {
-    if (!searchTerm.trim() && selectedSpecialties.length === 0) {
+    if (
+      !searchTerm.trim() &&
+      selectedSpecialties.length === 0 &&
+      selectedLocations.length === 0
+    ) {
       setSearchResults([]);
       setTotalSearchResults(0);
       setIsSearching(false);
@@ -255,11 +346,16 @@ export default function MentorFeed() {
     }
 
     const timeoutId = setTimeout(() => {
-      performSearch(searchTerm, currentPage, selectedSpecialties);
+      performSearch(
+        searchTerm,
+        currentPage,
+        selectedSpecialties,
+        selectedLocations
+      );
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, currentPage, selectedSpecialties]);
+  }, [searchTerm, currentPage, selectedSpecialties, selectedLocations]);
 
   // Scroll to top when page changes (but not on initial load)
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -500,19 +596,100 @@ export default function MentorFeed() {
 
           {/* Locations */}
           <div className="mb-6">
-            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
-              Locations
-            </h4>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <div className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500">
-                  Greater Bay Area
-                  <button className="ml-2 text-primary-600">×</button>
-                </div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                Locations
+              </h4>
+              {selectedLocations.length > 0 && (
+                <button
+                  onClick={clearLocationFilters}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {/* Selected Locations */}
+            {selectedLocations.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedLocations.map((location) => (
+                  <div
+                    key={location}
+                    className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500 flex items-center"
+                  >
+                    {formatLocation(location)}
+                    <button
+                      onClick={() => toggleLocation(location)}
+                      className="ml-2 text-primary-600 hover:text-primary-800"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
-              <div className="text-primary-600 text-sm cursor-pointer hover:underline">
-                San Francisco Bay Area, Greater New York...
-              </div>
+            )}
+
+            {/* Add Location Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() =>
+                  setIsLocationDropdownOpen(!isLocationDropdownOpen)
+                }
+                className="text-primary-600 text-sm hover:underline cursor-pointer"
+              >
+                + Add location
+              </button>
+
+              {isLocationDropdownOpen && (
+                <>
+                  {/* Invisible overlay to close dropdown */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsLocationDropdownOpen(false)}
+                  />
+
+                  {/* Dropdown */}
+                  <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {/* Search bar at top */}
+                    <div className="p-2 border-b border-gray-100">
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="Search locations..."
+                        value={locationQuery}
+                        onChange={(event) =>
+                          setLocationQuery(event.target.value)
+                        }
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* Auto-expanding results */}
+                    <div>
+                      {filteredLocations.length === 0 &&
+                      locationQuery !== "" ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No locations found.
+                        </div>
+                      ) : (
+                        filteredLocations.map((location) => (
+                          <button
+                            key={location}
+                            onClick={() => {
+                              addLocation(location);
+                              setIsLocationDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
+                          >
+                            {formatLocation(location)}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -690,7 +867,11 @@ export default function MentorFeed() {
           <div className="flex items-center justify-between text-sm text-gray-600 px-6 py-3">
             <span>
               {isActiveSearch
-                ? `${totalSearchResults} search results for "${searchTerm}" • Sorted by relevance`
+                ? `${totalSearchResults} ${
+                    searchTerm.trim()
+                      ? `search results for "${searchTerm}"`
+                      : "filtered results"
+                  } • Sorted by relevance`
                 : `${totalResults} results • Sorted by relevance`}
               {isSearching && " • Searching..."}
             </span>
@@ -765,7 +946,7 @@ export default function MentorFeed() {
               paginatedMentees.map((mentee) => (
                 <div
                   key={mentee.id}
-                  className="bg-white border-t border-gray-200 p-6 hover:bg-gray-50 transition-colors"
+                  className="bg-white border-t border-gray-200 p-6"
                 >
                   <div className="flex">
                     {/* Profile Image */}
