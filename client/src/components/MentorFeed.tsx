@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Search,
   MoreHorizontal,
@@ -59,6 +59,9 @@ export default function MentorFeed() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("your-matches");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Show 5 mentees per page
+  const headerRef = useRef<HTMLElement>(null);
 
   // Function to filter mentees based on active tab
   const getFilteredMentees = () => {
@@ -85,7 +88,50 @@ export default function MentorFeed() {
     }
   };
 
-  const filteredMentees = getFilteredMentees();
+  const allFilteredMentees = getFilteredMentees();
+
+  // Calculate pagination
+  const totalPages = Math.ceil(allFilteredMentees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedMentees = allFilteredMentees.slice(startIndex, endIndex);
+
+  // Reset to page 1 when changing tabs
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  // Handle page changes with scroll to top
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Scroll to top when page changes (but not on initial load)
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  useEffect(() => {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      return;
+    }
+
+    // Use requestAnimationFrame to ensure DOM is fully updated
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        // Smooth scroll to top
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        // Fallback for any containers that might be scrolled
+        const scrollableElements = document.querySelectorAll("*");
+        scrollableElements.forEach((el) => {
+          if (el.scrollTop > 0) {
+            el.scrollTo({ top: 0, behavior: "smooth" });
+          }
+        });
+      });
+    });
+  }, [currentPage]);
 
   // Fetch mentees from Supabase
   useEffect(() => {
@@ -115,7 +161,10 @@ export default function MentorFeed() {
   return (
     <div className="min-h-screen bg-gray-50 overscroll-none scrollbar-hide">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 relative">
+      <header
+        ref={headerRef}
+        className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 relative"
+      >
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center">
             <nav className="flex items-center space-x-8 text-sm">
@@ -293,7 +342,7 @@ export default function MentorFeed() {
           {/* Results Header */}
           <div className="flex border-b border-gray-200">
             <button
-              onClick={() => setActiveTab("available-mentees")}
+              onClick={() => handleTabChange("available-mentees")}
               className={`flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white ${
                 activeTab === "available-mentees"
                   ? "border-b-4 border-b-primary-600"
@@ -320,7 +369,7 @@ export default function MentorFeed() {
               </div>
             </button>
             <button
-              onClick={() => setActiveTab("your-matches")}
+              onClick={() => handleTabChange("your-matches")}
               className={`flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white ${
                 activeTab === "your-matches"
                   ? "border-b-4 border-b-primary-600"
@@ -347,7 +396,7 @@ export default function MentorFeed() {
               </div>
             </button>
             <button
-              onClick={() => setActiveTab("new-this-week")}
+              onClick={() => handleTabChange("new-this-week")}
               className={`flex-1 text-center hover:bg-gray-50 py-4 border-r border-gray-200 bg-white ${
                 activeTab === "new-this-week"
                   ? "border-b-4 border-b-primary-600"
@@ -374,7 +423,7 @@ export default function MentorFeed() {
               </div>
             </button>
             <button
-              onClick={() => setActiveTab("saved-mentees")}
+              onClick={() => handleTabChange("saved-mentees")}
               className={`flex-1 text-center hover:bg-gray-50 py-4 bg-white ${
                 activeTab === "saved-mentees"
                   ? "border-b-4 border-b-primary-600"
@@ -404,24 +453,17 @@ export default function MentorFeed() {
 
           <div className="flex items-center justify-between text-sm text-gray-600 px-6 py-3">
             <span>
-              {loading
-                ? "Loading..."
-                : `${filteredMentees.length} results • Sorted by relevance`}
+              {`${allFilteredMentees.length} results • Sorted by relevance`}
             </span>
             <span>
-              {filteredMentees.length > 0
-                ? `1 - ${filteredMentees.length}`
+              {allFilteredMentees.length > 0
+                ? `${startIndex + 1} - ${Math.min(
+                    endIndex,
+                    allFilteredMentees.length
+                  )}`
                 : ""}
             </span>
           </div>
-
-          {/* Loading State */}
-          {loading && (
-            <div className="bg-white border-t border-gray-200 p-12 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading mentee profiles...</p>
-            </div>
-          )}
 
           {/* Error State */}
           {error && (
@@ -440,13 +482,13 @@ export default function MentorFeed() {
           {!loading &&
             !error &&
             mentees.length > 0 &&
-            filteredMentees.length === 0 && (
+            allFilteredMentees.length === 0 && (
               <div className="bg-white border-t border-gray-200 p-12 text-center">
                 <p className="text-gray-600">
                   No mentees found for this category.
                 </p>
                 <button
-                  onClick={() => setActiveTab("available-mentees")}
+                  onClick={() => handleTabChange("available-mentees")}
                   className="mt-2 text-primary-600 hover:underline"
                 >
                   View all available mentees
@@ -458,7 +500,7 @@ export default function MentorFeed() {
           <div className="space-y-0">
             {!loading &&
               !error &&
-              filteredMentees.map((mentee) => (
+              paginatedMentees.map((mentee) => (
                 <div
                   key={mentee.id}
                   className="bg-white border-t border-gray-200 p-6 hover:bg-gray-50 transition-colors"
@@ -578,25 +620,52 @@ export default function MentorFeed() {
           </div>
 
           {/* Pagination */}
-          <div className="mt-8 flex items-center justify-center px-6 pb-6">
-            <nav className="flex space-x-2">
-              <button className="px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50 rounded">
-                Previous
-              </button>
-              <button className="w-10 h-10 bg-primary-600 text-white text-sm rounded flex items-center justify-center">
-                1
-              </button>
-              <button className="w-10 h-10 border border-gray-300 text-sm hover:bg-gray-50 rounded flex items-center justify-center">
-                2
-              </button>
-              <button className="w-10 h-10 border border-gray-300 text-sm hover:bg-gray-50 rounded flex items-center justify-center">
-                3
-              </button>
-              <button className="px-4 py-2 border border-gray-300 text-sm hover:bg-gray-50 rounded">
-                Next
-              </button>
-            </nav>
-          </div>
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center px-6 pb-6">
+              <nav className="flex space-x-2">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 border border-gray-300 text-sm rounded ${
+                    currentPage === 1
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`w-10 h-10 text-sm rounded flex items-center justify-center ${
+                        currentPage === page
+                          ? "bg-primary-600 text-white"
+                          : "border border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 border border-gray-300 text-sm rounded ${
+                    currentPage === totalPages
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
+          )}
         </div>
 
         {/* Right Panel - Selected Mentee Details */}
