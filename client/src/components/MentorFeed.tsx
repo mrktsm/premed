@@ -115,7 +115,7 @@ export default function MentorFeed() {
   return (
     <div className="min-h-screen bg-gray-50 overscroll-none scrollbar-hide">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4 relative">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center">
             <nav className="flex items-center space-x-8 text-sm">
@@ -144,6 +144,21 @@ export default function MentorFeed() {
               className="w-8 h-8 rounded-full object-cover border border-gray-200"
             />
           </div>
+        </div>
+
+        {/* Loading Progress Bar - Positioned at bottom of header */}
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-transparent">
+          <div
+            className={`h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all duration-500 ease-out ${
+              loading ? "animate-pulse" : ""
+            }`}
+            style={{
+              width: loading ? "100%" : "0%",
+              transition: loading
+                ? "width 0.6s ease-out"
+                : "width 0.3s ease-in",
+            }}
+          />
         </div>
       </header>
 
@@ -446,7 +461,7 @@ export default function MentorFeed() {
               filteredMentees.map((mentee) => (
                 <div
                   key={mentee.id}
-                  className="bg-white border-t border-gray-200 p-6 hover:shadow-sm transition-shadow"
+                  className="bg-white border-t border-gray-200 p-6 hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex">
                     {/* Profile Image */}
