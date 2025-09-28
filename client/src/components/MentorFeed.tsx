@@ -50,6 +50,20 @@ const formatAcademicLevel = (level: string) => {
   return levelMap[level] || level;
 };
 
+// Medical specialties list
+const medicalSpecialties = [
+  "cardiology",
+  "dermatology",
+  "emergency-medicine",
+  "family-medicine",
+  "internal-medicine",
+  "neurology",
+  "orthopedic-surgery",
+  "pediatrics",
+  "psychiatry",
+  "radiology",
+];
+
 export default function MentorFeed() {
   const [selectedMentee, setSelectedMentee] = useState<MenteeProfile | null>(
     null
@@ -62,6 +76,68 @@ export default function MentorFeed() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Show 5 mentees per page
   const headerRef = useRef<HTMLElement>(null);
+  const [searchResults, setSearchResults] = useState<MenteeProfile[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [totalSearchResults, setTotalSearchResults] = useState(0);
+  const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
+  const [specialtyQuery, setSpecialtyQuery] = useState("");
+  const [isSpecialtyDropdownOpen, setIsSpecialtyDropdownOpen] = useState(false);
+
+  // Server-side search function
+  const performSearch = async (
+    query: string,
+    page: number = 1,
+    specialties: string[] = selectedSpecialties
+  ) => {
+    if (!query.trim() && specialties.length === 0) {
+      setSearchResults([]);
+      setTotalSearchResults(0);
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      setError(null);
+
+      // Calculate offset for pagination
+      const offset = (page - 1) * itemsPerPage;
+
+      // Build search query
+      let searchQuery = supabase
+        .from("mentees")
+        .select("*", { count: "exact" });
+
+      // Add text search if query exists
+      if (query.trim()) {
+        const searchTermWildcard = `%${query.toLowerCase()}%`;
+        searchQuery = searchQuery.or(
+          `first_name.ilike.${searchTermWildcard},last_name.ilike.${searchTermWildcard},primary_specialty_interest.ilike.${searchTermWildcard},city_state.ilike.${searchTermWildcard},academic_level.ilike.${searchTermWildcard},application_target.ilike.${searchTermWildcard},mcat_status.ilike.${searchTermWildcard},preferred_mentorship_style.ilike.${searchTermWildcard},communication_frequency.ilike.${searchTermWildcard}`
+        );
+      }
+
+      // Add specialty filters
+      if (specialties.length > 0) {
+        searchQuery = searchQuery.in("primary_specialty_interest", specialties);
+      }
+
+      // Add pagination and ordering
+      const { data, error, count } = await searchQuery
+        .range(offset, offset + itemsPerPage - 1)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      setSearchResults(data || []);
+      setTotalSearchResults(count || 0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Search failed");
+      setSearchResults([]);
+      setTotalSearchResults(0);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // Function to filter mentees based on active tab
   const getFilteredMentees = () => {
@@ -88,13 +164,63 @@ export default function MentorFeed() {
     }
   };
 
-  const allFilteredMentees = getFilteredMentees();
+  // Specialty filter functions
+  const toggleSpecialty = (specialty: string) => {
+    setSelectedSpecialties((prev) =>
+      prev.includes(specialty)
+        ? prev.filter((s) => s !== specialty)
+        : [...prev, specialty]
+    );
+    setCurrentPage(1); // Reset to page 1 when filters change
+  };
+
+  const clearSpecialtyFilters = () => {
+    setSelectedSpecialties([]);
+    setCurrentPage(1);
+  };
+
+  // Filter specialties for Combobox
+  const availableSpecialties = medicalSpecialties.filter(
+    (specialty) => !selectedSpecialties.includes(specialty)
+  );
+
+  const filteredSpecialties =
+    specialtyQuery === ""
+      ? availableSpecialties
+      : availableSpecialties.filter((specialty) =>
+          formatSpecialty(specialty)
+            .toLowerCase()
+            .includes(specialtyQuery.toLowerCase())
+        );
+
+  const addSpecialty = (specialty: string) => {
+    if (specialty && !selectedSpecialties.includes(specialty)) {
+      setSelectedSpecialties((prev) => [...prev, specialty]);
+      setSpecialtyQuery("");
+      setCurrentPage(1);
+    }
+  };
+
+  // Determine which data to use: search results or filtered mentees
+  const isActiveSearch =
+    searchTerm.trim().length > 0 || selectedSpecialties.length > 0;
+  const allFilteredMentees = isActiveSearch
+    ? searchResults
+    : getFilteredMentees();
+  const totalResults = isActiveSearch
+    ? totalSearchResults
+    : allFilteredMentees.length;
 
   // Calculate pagination
-  const totalPages = Math.ceil(allFilteredMentees.length / itemsPerPage);
+  const totalPages = Math.ceil(totalResults / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedMentees = allFilteredMentees.slice(startIndex, endIndex);
+
+  // For search results, don't slice (already paginated from server)
+  // For regular results, slice for pagination
+  const paginatedMentees = isActiveSearch
+    ? searchResults
+    : allFilteredMentees.slice(startIndex, endIndex);
 
   // Reset to page 1 when changing tabs
   const handleTabChange = (tab: string) => {
@@ -105,7 +231,35 @@ export default function MentorFeed() {
   // Handle page changes with scroll to top
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+
+    // If we're in search mode, fetch search results for the new page
+    if (isActiveSearch) {
+      performSearch(searchTerm, page, selectedSpecialties);
+    }
   };
+
+  // Handle search input with debouncing
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to page 1 for new search
+  };
+
+  // Debounced search effect
+  useEffect(() => {
+    if (!searchTerm.trim() && selectedSpecialties.length === 0) {
+      setSearchResults([]);
+      setTotalSearchResults(0);
+      setIsSearching(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      performSearch(searchTerm, currentPage, selectedSpecialties);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, currentPage, selectedSpecialties]);
 
   // Scroll to top when page changes (but not on initial load)
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -199,13 +353,14 @@ export default function MentorFeed() {
         <div className="absolute bottom-0 left-0 w-full h-1 bg-transparent">
           <div
             className={`h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all duration-500 ease-out ${
-              loading ? "animate-pulse" : ""
+              loading || isSearching ? "animate-pulse" : ""
             }`}
             style={{
-              width: loading ? "100%" : "0%",
-              transition: loading
-                ? "width 0.6s ease-out"
-                : "width 0.3s ease-in",
+              width: loading || isSearching ? "100%" : "0%",
+              transition:
+                loading || isSearching
+                  ? "width 0.6s ease-out"
+                  : "width 0.3s ease-in",
             }}
           />
         </div>
@@ -220,7 +375,7 @@ export default function MentorFeed() {
               type="text"
               placeholder="Start a new search..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:border-blue-500 rounded-md"
             />
           </div>
@@ -246,19 +401,100 @@ export default function MentorFeed() {
 
           {/* Specialty Filter */}
           <div className="mb-6">
-            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
-              Medical Specialty
-            </h4>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <div className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500">
-                  Cardiology
-                  <button className="ml-2 text-primary-600">×</button>
-                </div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                Medical Specialty
+              </h4>
+              {selectedSpecialties.length > 0 && (
+                <button
+                  onClick={clearSpecialtyFilters}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {/* Selected Specialties */}
+            {selectedSpecialties.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedSpecialties.map((specialty) => (
+                  <div
+                    key={specialty}
+                    className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500 flex items-center"
+                  >
+                    {formatSpecialty(specialty)}
+                    <button
+                      onClick={() => toggleSpecialty(specialty)}
+                      className="ml-2 text-primary-600 hover:text-primary-800"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
-              <button className="text-primary-600 text-sm hover:underline">
+            )}
+
+            {/* Add Specialty Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() =>
+                  setIsSpecialtyDropdownOpen(!isSpecialtyDropdownOpen)
+                }
+                className="text-primary-600 text-sm hover:underline cursor-pointer"
+              >
                 + Add specialty
               </button>
+
+              {isSpecialtyDropdownOpen && (
+                <>
+                  {/* Invisible overlay to close dropdown */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsSpecialtyDropdownOpen(false)}
+                  />
+
+                  {/* Dropdown */}
+                  <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {/* Search bar at top */}
+                    <div className="p-2 border-b border-gray-100">
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="Search specialties..."
+                        value={specialtyQuery}
+                        onChange={(event) =>
+                          setSpecialtyQuery(event.target.value)
+                        }
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* Auto-expanding results */}
+                    <div>
+                      {filteredSpecialties.length === 0 &&
+                      specialtyQuery !== "" ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No specialties found.
+                        </div>
+                      ) : (
+                        filteredSpecialties.map((specialty) => (
+                          <button
+                            key={specialty}
+                            onClick={() => {
+                              addSpecialty(specialty);
+                              setIsSpecialtyDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
+                          >
+                            {formatSpecialty(specialty)}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -453,13 +689,18 @@ export default function MentorFeed() {
 
           <div className="flex items-center justify-between text-sm text-gray-600 px-6 py-3">
             <span>
-              {`${allFilteredMentees.length} results • Sorted by relevance`}
+              {isActiveSearch
+                ? `${totalSearchResults} search results for "${searchTerm}" • Sorted by relevance`
+                : `${totalResults} results • Sorted by relevance`}
+              {isSearching && " • Searching..."}
             </span>
             <span>
-              {allFilteredMentees.length > 0
+              {totalResults > 0
                 ? `${startIndex + 1} - ${Math.min(
-                    endIndex,
-                    allFilteredMentees.length
+                    isActiveSearch
+                      ? startIndex + paginatedMentees.length
+                      : endIndex,
+                    totalResults
                   )}`
                 : ""}
             </span>
@@ -481,18 +722,39 @@ export default function MentorFeed() {
           {/* Empty State */}
           {!loading &&
             !error &&
-            mentees.length > 0 &&
-            allFilteredMentees.length === 0 && (
+            !isSearching &&
+            ((isActiveSearch &&
+              searchResults.length === 0 &&
+              searchTerm.trim()) ||
+              (!isActiveSearch &&
+                mentees.length > 0 &&
+                allFilteredMentees.length === 0)) && (
               <div className="bg-white border-t border-gray-200 p-12 text-center">
-                <p className="text-gray-600">
-                  No mentees found for this category.
-                </p>
-                <button
-                  onClick={() => handleTabChange("available-mentees")}
-                  className="mt-2 text-primary-600 hover:underline"
-                >
-                  View all available mentees
-                </button>
+                {isActiveSearch ? (
+                  <div>
+                    <p className="text-gray-600">
+                      No mentees found for "{searchTerm}".
+                    </p>
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="mt-2 text-primary-600 hover:underline"
+                    >
+                      Clear search to view all mentees
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-gray-600">
+                      No mentees found for this category.
+                    </p>
+                    <button
+                      onClick={() => handleTabChange("available-mentees")}
+                      className="mt-2 text-primary-600 hover:underline"
+                    >
+                      View all available mentees
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
