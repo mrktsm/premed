@@ -12,6 +12,19 @@ import { supabase } from "../lib/supabase";
 import type { MenteeProfile } from "../lib/supabase";
 import { universities } from "../data/universities";
 
+// Message and conversation types
+interface Message {
+  id: string;
+  senderId: string;
+  text: string;
+  timestamp: string;
+  isOwn: boolean;
+}
+
+interface MessagesData {
+  [conversationId: string]: Message[];
+}
+
 // Profile picture generator function
 const getProfilePicture = (firstName: string, lastName: string, id: string) => {
   // Use a combination of services for variety
@@ -166,6 +179,7 @@ export default function MentorFeed() {
   const [selectedConversation, setSelectedConversation] = useState<
     string | null
   >(null);
+  const [messageInput, setMessageInput] = useState<string>("");
 
   // Mock message data
   const mockConversations = [
@@ -257,35 +271,35 @@ export default function MentorFeed() {
         id: "1",
         senderId: "emily-chen",
         text: "Hi Dr. Johnson! Thank you so much for accepting me as your mentee. I'm really excited to work with you!",
-        timestamp: "10:30 AM",
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
         isOwn: false,
       },
       {
         id: "2",
         senderId: "mentor",
         text: "Welcome Emily! I'm excited to help guide you through your pre-med journey. What specific areas would you like to focus on first?",
-        timestamp: "10:35 AM",
+        timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(), // 1.5 hours ago
         isOwn: true,
       },
       {
         id: "3",
         senderId: "emily-chen",
         text: "I'm particularly interested in cardiology and would love to learn more about research opportunities. Also, I'm a bit nervous about the MCAT timeline.",
-        timestamp: "10:37 AM",
+        timestamp: new Date(Date.now() - 1.2 * 60 * 60 * 1000).toISOString(), // 1.2 hours ago
         isOwn: false,
       },
       {
         id: "4",
         senderId: "mentor",
         text: "Those are great areas to focus on! For cardiology research, I can connect you with Dr. Smith in our lab. As for the MCAT, what's your current timeline looking like?",
-        timestamp: "10:40 AM",
+        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
         isOwn: true,
       },
       {
         id: "5",
         senderId: "emily-chen",
         text: "Thank you for accepting me as your mentee! I'm really excited to learn from you.",
-        timestamp: "2:15 PM",
+        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
         isOwn: false,
       },
     ],
@@ -294,18 +308,85 @@ export default function MentorFeed() {
         id: "1",
         senderId: "marcus-rodriguez",
         text: "Hi Dr. Johnson, I hope you're doing well!",
-        timestamp: "Yesterday",
+        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
         isOwn: false,
       },
       {
         id: "2",
         senderId: "marcus-rodriguez",
         text: "I have some questions about the MCAT preparation timeline you mentioned in our last call. When do you think I should start studying?",
-        timestamp: "1:30 PM",
+        timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
         isOwn: false,
       },
     ],
   };
+
+  // Messages state and functions
+  const [messages, setMessages] = useState<MessagesData>(mockMessages);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Format timestamp for display
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
+
+    if (diffMinutes < 1) return "just now";
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+    return date.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  // Send message function
+  const sendMessage = () => {
+    if (!messageInput.trim() || !selectedConversation) return;
+
+    const newMessage = {
+      id: Date.now().toString(),
+      senderId: "mentor-1", // Current user (mentor)
+      text: messageInput.trim(),
+      timestamp: new Date().toISOString(),
+      isOwn: true,
+    };
+
+    setMessages((prev) => ({
+      ...prev,
+      [selectedConversation]: [
+        ...(prev[selectedConversation] || []),
+        newMessage,
+      ],
+    }));
+
+    setMessageInput("");
+
+    // Scroll to bottom after message is sent
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
+
+  // Handle enter key press in message input
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  // Scroll to bottom when conversation changes or messages update
+  useEffect(() => {
+    if (selectedConversation && messages[selectedConversation]) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [selectedConversation, messages]);
 
   // Server-side search function
   const performSearch = async (
@@ -666,9 +747,6 @@ export default function MentorFeed() {
               >
                 FEED
               </span>
-              <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
-                MATCHES
-              </span>
               <span
                 className={`font-medium cursor-pointer ${
                   currentView === "messaging"
@@ -678,6 +756,9 @@ export default function MentorFeed() {
                 onClick={() => setCurrentView("messaging")}
               >
                 MESSAGES
+              </span>
+              <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
+                MATCHES
               </span>
               <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                 REPORTS
@@ -700,15 +781,17 @@ export default function MentorFeed() {
         {/* Loading Progress Bar - Positioned at bottom of header */}
         <div className="absolute bottom-0 left-0 w-full h-1 bg-transparent">
           <div
-            className={`h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all duration-500 ease-out ${
-              loading || isSearching ? "animate-pulse" : ""
+            className={`h-full bg-gradient-to-r from-primary-400 to-primary-500 transition-all duration-200 ease-out ${
+              currentView === "feed" && (loading || isSearching)
+                ? "animate-pulse"
+                : ""
             }`}
             style={{
-              width: loading || isSearching ? "100%" : "0%",
-              transition:
-                loading || isSearching
-                  ? "width 0.6s ease-out"
-                  : "width 0.3s ease-in",
+              width:
+                currentView === "feed" && (loading || isSearching)
+                  ? "100%"
+                  : "0%",
+              transition: "width 0.2s ease-out",
             }}
           />
         </div>
@@ -1564,7 +1647,7 @@ export default function MentorFeed() {
                   onClick={() => setSelectedConversation(conversation.id)}
                   className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 relative ${
                     selectedConversation === conversation.id
-                      ? "bg-primary-50"
+                      ? "bg-gray-100"
                       : "bg-white"
                   }`}
                 >
@@ -1579,7 +1662,7 @@ export default function MentorFeed() {
                         className="w-12 h-12 rounded-full object-cover"
                       />
                       {conversation.unreadCount > 0 && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
+                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
                           {conversation.unreadCount}
                         </div>
                       )}
@@ -1639,77 +1722,84 @@ export default function MentorFeed() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {mockMessages[
-                    selectedConversation as keyof typeof mockMessages
-                  ]?.map((message) => {
-                    const conversation = mockConversations.find(
-                      (c) => c.id === selectedConversation
-                    );
-                    const mentorAvatar =
-                      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format";
+                <div className="flex-1 overflow-y-auto pt-4 px-4 space-y-4">
+                  {messages[selectedConversation as keyof typeof messages]?.map(
+                    (message) => {
+                      const conversation = mockConversations.find(
+                        (c) => c.id === selectedConversation
+                      );
+                      const mentorAvatar =
+                        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format";
 
-                    return (
-                      <div key={message.id}>
-                        {message.isOwn ? (
-                          // Your messages (right-aligned)
-                          <div className="flex items-start justify-end space-x-3">
-                            <div className="flex flex-col items-end max-w-md">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <span className="text-xs text-gray-500">
-                                  {message.timestamp}
-                                </span>
-                                <span className="text-sm font-medium text-gray-900">
-                                  You
-                                </span>
+                      return (
+                        <div key={message.id}>
+                          {message.isOwn ? (
+                            // Your messages (right-aligned)
+                            <div className="flex items-start justify-end space-x-3">
+                              <div className="flex flex-col items-end max-w-md">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="text-xs text-gray-500">
+                                    {formatTimestamp(message.timestamp)}
+                                  </span>
+                                  <span className="text-sm font-medium text-gray-900">
+                                    You
+                                  </span>
+                                </div>
+                                <div className="bg-primary-600 text-white rounded-lg px-3 py-2">
+                                  <p className="text-sm">{message.text}</p>
+                                </div>
                               </div>
-                              <div className="bg-primary-600 text-white rounded-lg px-3 py-2">
-                                <p className="text-sm">{message.text}</p>
+                              <img
+                                src={mentorAvatar}
+                                alt="Your profile"
+                                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                              />
+                            </div>
+                          ) : (
+                            // Their messages (left-aligned)
+                            <div className="flex items-start space-x-3">
+                              <img
+                                src={conversation?.participant.avatar}
+                                alt={conversation?.participant.name}
+                                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                              />
+                              <div className="flex flex-col max-w-md">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {conversation?.participant.name}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {formatTimestamp(message.timestamp)}
+                                  </span>
+                                </div>
+                                <div className="bg-gray-100 text-gray-900 rounded-lg px-3 py-2">
+                                  <p className="text-sm">{message.text}</p>
+                                </div>
                               </div>
                             </div>
-                            <img
-                              src={mentorAvatar}
-                              alt="Your profile"
-                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                            />
-                          </div>
-                        ) : (
-                          // Their messages (left-aligned)
-                          <div className="flex items-start space-x-3">
-                            <img
-                              src={conversation?.participant.avatar}
-                              alt={conversation?.participant.name}
-                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                            />
-                            <div className="flex flex-col max-w-md">
-                              <div className="flex items-center space-x-2 mb-1">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {conversation?.participant.name}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {message.timestamp}
-                                </span>
-                              </div>
-                              <div className="bg-gray-100 text-gray-900 rounded-lg px-3 py-2">
-                                <p className="text-sm">{message.text}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }) || []}
+                          )}
+                        </div>
+                      );
+                    }
+                  ) || []}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Message Input */}
-                <div className="p-4">
+                <div className="sticky bottom-0 bg-white pb-4 px-4">
                   <div className="relative">
                     <input
                       type="text"
+                      value={messageInput}
+                      onChange={(e) => setMessageInput(e.target.value)}
+                      onKeyPress={handleKeyPress}
                       placeholder="Type a message..."
                       className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
                     />
-                    <button className="absolute right-2 top-1/2 -translate-y-1/2 text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center w-8 h-8">
+                    <button
+                      onClick={sendMessage}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center w-8 h-8"
+                    >
                       <FontAwesomeIcon
                         icon={faPaperPlane}
                         className="w-6 h-6"
@@ -1720,7 +1810,7 @@ export default function MentorFeed() {
               </>
             ) : (
               /* No conversation selected */
-              <div className="flex-1 flex items-center justify-center bg-gray-50">
+              <div className="flex-1 flex items-center justify-center bg-white">
                 <div className="text-center">
                   <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">
