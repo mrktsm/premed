@@ -6,6 +6,8 @@ import {
   MessageSquare,
   Bookmark,
 } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "../lib/supabase";
 import type { MenteeProfile } from "../lib/supabase";
 import { universities } from "../data/universities";
@@ -172,7 +174,7 @@ export default function MentorFeed() {
       participant: {
         name: "Emily Chen",
         avatar:
-          "https://images.unsplash.com/photo-1494790108755-2616b612b167?w=40&h=40&fit=crop&crop=face&auto=format",
+          "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=40&h=40&fit=crop&crop=face&auto=format",
         status: "Active now",
         specialty: "Cardiology",
       },
@@ -1547,7 +1549,7 @@ export default function MentorFeed() {
           {/* Left Panel - Conversations List */}
           <div className="w-80 bg-white border-l border-r border-gray-200 h-full flex flex-col">
             {/* Header */}
-            <div className="px-6 py-4">
+            <div className="px-6 pt-6 pb-6">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-gray-900">Messages</h3>
                 <MoreHorizontal className="w-5 h-5 text-gray-400" />
@@ -1611,7 +1613,7 @@ export default function MentorFeed() {
           </div>
 
           {/* Right Panel - Chat Interface */}
-          <div className="flex-1 bg-white flex flex-col h-full">
+          <div className="flex-1 bg-white flex flex-col h-full border-r border-gray-200">
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
@@ -1637,55 +1639,78 @@ export default function MentorFeed() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   {mockMessages[
                     selectedConversation as keyof typeof mockMessages
-                  ]?.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.isOwn ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                          message.isOwn
-                            ? "bg-primary-600 text-white"
-                            : "bg-gray-100 text-gray-900"
-                        }`}
-                      >
-                        <p className="text-sm">{message.text}</p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            message.isOwn ? "text-primary-100" : "text-gray-500"
-                          }`}
-                        >
-                          {message.timestamp}
-                        </p>
+                  ]?.map((message) => {
+                    const conversation = mockConversations.find(
+                      (c) => c.id === selectedConversation
+                    );
+                    const mentorAvatar =
+                      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face&auto=format";
+
+                    return (
+                      <div key={message.id}>
+                        {message.isOwn ? (
+                          // Your messages (right-aligned)
+                          <div className="flex items-start justify-end space-x-3">
+                            <div className="flex flex-col items-end max-w-md">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-xs text-gray-500">
+                                  {message.timestamp}
+                                </span>
+                                <span className="text-sm font-medium text-gray-900">
+                                  You
+                                </span>
+                              </div>
+                              <div className="bg-primary-600 text-white rounded-lg px-3 py-2">
+                                <p className="text-sm">{message.text}</p>
+                              </div>
+                            </div>
+                            <img
+                              src={mentorAvatar}
+                              alt="Your profile"
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                            />
+                          </div>
+                        ) : (
+                          // Their messages (left-aligned)
+                          <div className="flex items-start space-x-3">
+                            <img
+                              src={conversation?.participant.avatar}
+                              alt={conversation?.participant.name}
+                              className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                            />
+                            <div className="flex flex-col max-w-md">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {conversation?.participant.name}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {message.timestamp}
+                                </span>
+                              </div>
+                              <div className="bg-gray-100 text-gray-900 rounded-lg px-3 py-2">
+                                <p className="text-sm">{message.text}</p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  )) || []}
+                    );
+                  }) || []}
                 </div>
 
                 {/* Message Input */}
-                <div className="p-4 border-t border-gray-200">
-                  <div className="flex items-center space-x-3">
+                <div className="p-4">
+                  <div className="relative">
                     <input
                       type="text"
                       placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
                     />
-                    <button className="bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                        />
-                      </svg>
+                    <button className="absolute right-2 top-1/2 -translate-y-1/2 text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center w-8 h-8">
+                      <FontAwesomeIcon
+                        icon={faPaperPlane}
+                        className="w-6 h-6"
+                      />
                     </button>
                   </div>
                 </div>
