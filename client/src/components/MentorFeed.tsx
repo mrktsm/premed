@@ -1562,12 +1562,15 @@ export default function MentorFeed() {
                 <div
                   key={conversation.id}
                   onClick={() => setSelectedConversation(conversation.id)}
-                  className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
+                  className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 relative ${
                     selectedConversation === conversation.id
                       ? "bg-primary-50"
                       : "bg-white"
                   }`}
                 >
+                  {selectedConversation === conversation.id && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-600"></div>
+                  )}
                   <div className="flex items-start space-x-3">
                     <div className="relative flex-shrink-0">
                       <img
