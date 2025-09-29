@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import type { MenteeProfile } from "../lib/supabase";
+import { universities, type University } from "../data/universities";
 
 // Profile picture generator function
 const getProfilePicture = (firstName: string, lastName: string, id: string) => {
@@ -103,6 +104,31 @@ const commonLocations = [
   "CT", // Connecticut - Yale area
 ];
 
+// Get top universities for pre-med students
+const getTopUniversities = (): string[] => {
+  return universities
+    .filter(
+      (u) =>
+        u.type === "private" ||
+        [
+          "CA",
+          "NY",
+          "TX",
+          "MA",
+          "PA",
+          "FL",
+          "IL",
+          "NC",
+          "MD",
+          "WA",
+          "GA",
+          "MI",
+        ].includes(u.state)
+    )
+    .slice(0, 50) // Get first 50 which includes top universities
+    .map((u) => u.name);
+};
+
 export default function MentorFeed() {
   const [selectedMentee, setSelectedMentee] = useState<MenteeProfile | null>(
     null
@@ -126,14 +152,27 @@ export default function MentorFeed() {
   const [locationQuery, setLocationQuery] = useState("");
   const [isLocationDropdownOpen, setIsLocationDropdownOpen] = useState(false);
 
+  const [selectedUniversities, setSelectedUniversities] = useState<string[]>(
+    []
+  );
+  const [universityQuery, setUniversityQuery] = useState("");
+  const [isUniversityDropdownOpen, setIsUniversityDropdownOpen] =
+    useState(false);
+
   // Server-side search function
   const performSearch = async (
     query: string,
     page: number = 1,
     specialties: string[] = selectedSpecialties,
-    locations: string[] = selectedLocations
+    locations: string[] = selectedLocations,
+    universities: string[] = selectedUniversities
   ) => {
-    if (!query.trim() && specialties.length === 0 && locations.length === 0) {
+    if (
+      !query.trim() &&
+      specialties.length === 0 &&
+      locations.length === 0 &&
+      universities.length === 0
+    ) {
       setSearchResults([]);
       setTotalSearchResults(0);
       setIsSearching(false);
@@ -172,6 +211,11 @@ export default function MentorFeed() {
           .map((state) => `city_state.ilike.%${state}%`)
           .join(",");
         searchQuery = searchQuery.or(locationConditions);
+      }
+
+      // Add university filters
+      if (universities.length > 0) {
+        searchQuery = searchQuery.in("preferred_university", universities);
       }
 
       // Add pagination and ordering
@@ -286,11 +330,43 @@ export default function MentorFeed() {
     setCurrentPage(1);
   };
 
+  // University filter functions
+  const allUniversityNames = getTopUniversities();
+  const availableUniversities = allUniversityNames.filter(
+    (university) => !selectedUniversities.includes(university)
+  );
+
+  const filteredUniversities =
+    universityQuery === ""
+      ? availableUniversities.slice(0, 6) // Show only top 6 most popular universities when no search
+      : availableUniversities.filter((university) =>
+          university.toLowerCase().includes(universityQuery.toLowerCase())
+        );
+
+  const addUniversity = (university: string) => {
+    if (university && !selectedUniversities.includes(university)) {
+      setSelectedUniversities((prev) => [...prev, university]);
+      setUniversityQuery("");
+      setCurrentPage(1);
+    }
+  };
+
+  const toggleUniversity = (university: string) => {
+    setSelectedUniversities((prev) => prev.filter((u) => u !== university));
+    setCurrentPage(1);
+  };
+
+  const clearUniversityFilters = () => {
+    setSelectedUniversities([]);
+    setCurrentPage(1);
+  };
+
   // Determine which data to use: search results or filtered mentees
   const isActiveSearch =
     searchTerm.trim().length > 0 ||
     selectedSpecialties.length > 0 ||
-    selectedLocations.length > 0;
+    selectedLocations.length > 0 ||
+    selectedUniversities.length > 0;
   const allFilteredMentees = isActiveSearch
     ? searchResults
     : getFilteredMentees();
@@ -321,7 +397,13 @@ export default function MentorFeed() {
 
     // If we're in search mode, fetch search results for the new page
     if (isActiveSearch) {
-      performSearch(searchTerm, page, selectedSpecialties, selectedLocations);
+      performSearch(
+        searchTerm,
+        page,
+        selectedSpecialties,
+        selectedLocations,
+        selectedUniversities
+      );
     }
   };
 
@@ -337,7 +419,8 @@ export default function MentorFeed() {
     if (
       !searchTerm.trim() &&
       selectedSpecialties.length === 0 &&
-      selectedLocations.length === 0
+      selectedLocations.length === 0 &&
+      selectedUniversities.length === 0
     ) {
       setSearchResults([]);
       setTotalSearchResults(0);
@@ -350,12 +433,19 @@ export default function MentorFeed() {
         searchTerm,
         currentPage,
         selectedSpecialties,
-        selectedLocations
+        selectedLocations,
+        selectedUniversities
       );
     }, 300); // 300ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, currentPage, selectedSpecialties, selectedLocations]);
+  }, [
+    searchTerm,
+    currentPage,
+    selectedSpecialties,
+    selectedLocations,
+    selectedUniversities,
+  ]);
 
   // Scroll to top when page changes (but not on initial load)
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -693,6 +783,105 @@ export default function MentorFeed() {
             </div>
           </div>
 
+          {/* Universities */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                Universities
+              </h4>
+              {selectedUniversities.length > 0 && (
+                <button
+                  onClick={clearUniversityFilters}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            {/* Selected Universities */}
+            {selectedUniversities.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedUniversities.map((university) => (
+                  <div
+                    key={university}
+                    className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500 flex items-center"
+                  >
+                    {university}
+                    <button
+                      onClick={() => toggleUniversity(university)}
+                      className="ml-2 text-primary-600 hover:text-primary-800"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add University Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() =>
+                  setIsUniversityDropdownOpen(!isUniversityDropdownOpen)
+                }
+                className="text-primary-600 text-sm hover:underline cursor-pointer"
+              >
+                + Add university
+              </button>
+
+              {isUniversityDropdownOpen && (
+                <>
+                  {/* Invisible overlay to close dropdown */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsUniversityDropdownOpen(false)}
+                  />
+
+                  {/* Dropdown */}
+                  <div className="absolute z-50 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {/* Search bar at top */}
+                    <div className="p-2 border-b border-gray-100">
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="Search universities..."
+                        value={universityQuery}
+                        onChange={(event) =>
+                          setUniversityQuery(event.target.value)
+                        }
+                        autoFocus
+                      />
+                    </div>
+
+                    {/* Auto-expanding results */}
+                    <div>
+                      {filteredUniversities.length === 0 &&
+                      universityQuery !== "" ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No universities found.
+                        </div>
+                      ) : (
+                        filteredUniversities.map((university) => (
+                          <button
+                            key={university}
+                            onClick={() => {
+                              addUniversity(university);
+                              setIsUniversityDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
+                          >
+                            {university}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
           {/* Academic Level */}
           <div className="mb-6">
             <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
@@ -721,19 +910,6 @@ export default function MentorFeed() {
               placeholder="Enter a help area..."
               className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none focus:border-blue-500 rounded-md"
             />
-          </div>
-
-          {/* Universities */}
-          <div className="mb-6">
-            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
-              Universities
-            </h4>
-            <div className="text-primary-600 text-sm cursor-pointer hover:underline mb-2">
-              Stanford University
-            </div>
-            <button className="text-primary-600 text-sm hover:underline">
-              + Add universities or boolean
-            </button>
           </div>
 
           {/* Application Timeline */}
