@@ -1547,14 +1547,11 @@ export default function MentorFeed() {
           {/* Left Panel - Conversations List */}
           <div className="w-80 bg-white border-l border-r border-gray-200 h-full flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between mb-2">
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between">
                 <h3 className="font-medium text-gray-900">Messages</h3>
                 <MoreHorizontal className="w-5 h-5 text-gray-400" />
               </div>
-              <p className="text-sm text-gray-500">
-                {mockConversations.length} conversations
-              </p>
             </div>
 
             {/* Conversations List */}
@@ -1563,7 +1560,7 @@ export default function MentorFeed() {
                 <div
                   key={conversation.id}
                   onClick={() => setSelectedConversation(conversation.id)}
-                  className={`p-4 border-t border-gray-200 cursor-pointer transition-colors hover:bg-gray-50 ${
+                  className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
                     selectedConversation === conversation.id
                       ? "bg-primary-50"
                       : "bg-white"
@@ -1597,9 +1594,6 @@ export default function MentorFeed() {
                           {conversation.lastMessage.timestamp}
                         </span>
                       </div>
-                      <p className="text-xs text-primary-600 mb-1">
-                        {conversation.participant.specialty}
-                      </p>
                       <p
                         className={`text-xs text-gray-600 truncate ${
                           !conversation.lastMessage.isRead
@@ -1621,26 +1615,19 @@ export default function MentorFeed() {
             {selectedConversation ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-gray-200 bg-white">
+                <div className="px-4 py-2 border-b border-gray-200 bg-white">
                   {(() => {
                     const conversation = mockConversations.find(
                       (c) => c.id === selectedConversation
                     );
                     return conversation ? (
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={conversation.participant.avatar}
-                          alt={conversation.participant.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <h3 className="font-medium text-gray-900">
-                            {conversation.participant.name}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {conversation.participant.status}
-                          </p>
-                        </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900">
+                          {conversation.participant.name}
+                        </h3>
+                        <p className="text-xs text-primary-600">
+                          {conversation.participant.specialty}
+                        </p>
                       </div>
                     ) : null;
                   })()}
