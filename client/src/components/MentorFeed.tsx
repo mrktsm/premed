@@ -60,6 +60,7 @@ const formatAcademicLevel = (level: string) => {
     sophomore: "2nd year",
     junior: "3rd year",
     senior: "4th year",
+    undergraduate: "Undergraduate",
     "post-bacc": "Post-baccalaureate",
     "gap-year": "Gap year",
   };
@@ -119,6 +120,9 @@ const commonLocations = [
   "CT", // Connecticut - Yale area
 ];
 
+// Academic levels list (simplified - no individual years)
+const academicLevels = ["undergraduate", "post-bacc", "gap-year"];
+
 // Get top universities for pre-med students
 const getTopUniversities = (): string[] => {
   return universities
@@ -174,6 +178,10 @@ export default function MentorFeed() {
   const [universityQuery, setUniversityQuery] = useState("");
   const [isUniversityDropdownOpen, setIsUniversityDropdownOpen] =
     useState(false);
+
+  const [selectedAcademicLevels, setSelectedAcademicLevels] = useState<
+    string[]
+  >([]);
 
   // Messaging state
   const [selectedConversation, setSelectedConversation] = useState<
@@ -394,13 +402,15 @@ export default function MentorFeed() {
     page: number = 1,
     specialties: string[] = selectedSpecialties,
     locations: string[] = selectedLocations,
-    universities: string[] = selectedUniversities
+    universities: string[] = selectedUniversities,
+    academicLevels: string[] = selectedAcademicLevels
   ) => {
     if (
       !query.trim() &&
       specialties.length === 0 &&
       locations.length === 0 &&
-      universities.length === 0
+      universities.length === 0 &&
+      academicLevels.length === 0
     ) {
       setSearchResults([]);
       setTotalSearchResults(0);
@@ -445,6 +455,18 @@ export default function MentorFeed() {
       // Add university filters
       if (universities.length > 0) {
         searchQuery = searchQuery.in("preferred_university", universities);
+      }
+
+      // Add academic level filters
+      if (academicLevels.length > 0) {
+        // Map "undergraduate" to include all individual year levels
+        const expandedLevels = academicLevels.flatMap((level) => {
+          if (level === "undergraduate") {
+            return ["freshman", "sophomore", "junior", "senior"];
+          }
+          return [level];
+        });
+        searchQuery = searchQuery.in("academic_level", expandedLevels);
       }
 
       // Add pagination and ordering
@@ -590,12 +612,26 @@ export default function MentorFeed() {
     setCurrentPage(1);
   };
 
+  // Academic level filter functions
+  const toggleAcademicLevel = (level: string) => {
+    setSelectedAcademicLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+    );
+    setCurrentPage(1); // Reset to page 1 when filters change
+  };
+
+  const clearAcademicLevelFilters = () => {
+    setSelectedAcademicLevels([]);
+    setCurrentPage(1);
+  };
+
   // Determine which data to use: search results or filtered mentees
   const isActiveSearch =
     searchTerm.trim().length > 0 ||
     selectedSpecialties.length > 0 ||
     selectedLocations.length > 0 ||
-    selectedUniversities.length > 0;
+    selectedUniversities.length > 0 ||
+    selectedAcademicLevels.length > 0;
   const allFilteredMentees = isActiveSearch
     ? searchResults
     : getFilteredMentees();
@@ -631,7 +667,8 @@ export default function MentorFeed() {
         page,
         selectedSpecialties,
         selectedLocations,
-        selectedUniversities
+        selectedUniversities,
+        selectedAcademicLevels
       );
     }
   };
@@ -649,7 +686,8 @@ export default function MentorFeed() {
       !searchTerm.trim() &&
       selectedSpecialties.length === 0 &&
       selectedLocations.length === 0 &&
-      selectedUniversities.length === 0
+      selectedUniversities.length === 0 &&
+      selectedAcademicLevels.length === 0
     ) {
       setSearchResults([]);
       setTotalSearchResults(0);
@@ -663,7 +701,8 @@ export default function MentorFeed() {
         currentPage,
         selectedSpecialties,
         selectedLocations,
-        selectedUniversities
+        selectedUniversities,
+        selectedAcademicLevels
       );
     }, 300); // 300ms debounce
 
@@ -674,6 +713,7 @@ export default function MentorFeed() {
     selectedSpecialties,
     selectedLocations,
     selectedUniversities,
+    selectedAcademicLevels,
   ]);
 
   // Scroll to top when page changes (but not on initial load)
@@ -1132,19 +1172,52 @@ export default function MentorFeed() {
 
             {/* Academic Level */}
             <div className="mb-6">
-              <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
-                Academic Level
-              </h4>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                  Academic Level
+                </h4>
+                {selectedAcademicLevels.length > 0 && (
+                  <button
+                    onClick={clearAcademicLevelFilters}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              {/* Selected Academic Levels */}
+              {selectedAcademicLevels.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {selectedAcademicLevels.map((level) => (
+                    <div
+                      key={level}
+                      className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500 flex items-center"
+                    >
+                      {formatAcademicLevel(level)}
+                      <button
+                        onClick={() => toggleAcademicLevel(level)}
+                        className="ml-2 text-primary-600 hover:text-primary-800"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="space-y-1">
-                <div className="text-primary-600 text-sm cursor-pointer hover:underline">
-                  Pre-med (156)
-                </div>
-                <div className="text-primary-600 text-sm cursor-pointer hover:underline">
-                  Post-bacc (89)
-                </div>
-                <div className="text-primary-600 text-sm cursor-pointer hover:underline">
-                  Gap year (67)
-                </div>
+                {academicLevels
+                  .filter((level) => !selectedAcademicLevels.includes(level))
+                  .map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => toggleAcademicLevel(level)}
+                      className="block w-full text-left text-sm cursor-pointer hover:underline transition-colors text-primary-600"
+                    >
+                      {formatAcademicLevel(level)}
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -1709,13 +1782,16 @@ export default function MentorFeed() {
                       (c) => c.id === selectedConversation
                     );
                     return conversation ? (
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900">
-                          {conversation.participant.name}
-                        </h3>
-                        <p className="text-xs text-primary-600">
-                          {conversation.participant.specialty}
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-900">
+                            {conversation.participant.name}
+                          </h3>
+                          <p className="text-xs text-primary-600">
+                            {conversation.participant.specialty}
+                          </p>
+                        </div>
+                        <MoreHorizontal className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
                       </div>
                     ) : null;
                   })()}
