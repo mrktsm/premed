@@ -123,19 +123,16 @@ const commonLocations = [
 // Academic levels list (simplified - no individual years)
 const academicLevels = ["undergraduate", "post-bacc", "gap-year"];
 
-// Help areas list (based on questionnaire options)
+// Help areas list (based on actual database values)
 const helpAreas = [
-  "mcat-preparation",
-  "personal-statements",
-  "letters-of-recommendation",
+  "mcat-prep",
   "interview-skills",
-  "building-school-list",
-  "general-application-strategy",
-  "specialty-insight",
-  "networking-professional-connections",
+  "application-strategy",
   "emotional-support-motivation",
-  "research-mentorship",
-  "coursework-exams",
+  "clinical-shadowing",
+  "research-opportunities",
+  "volunteer-opportunities",
+  "career-guidance",
 ];
 
 // Get top universities for pre-med students
@@ -489,9 +486,23 @@ export default function MentorFeed() {
         searchQuery = searchQuery.in("academic_level", expandedLevels);
       }
 
-      // Add help areas filters (array field - needs to overlap with selected areas)
+      // Add help areas filters (JSONB array field - check if any selected areas match)
       if (helpAreas.length > 0) {
-        searchQuery = searchQuery.overlaps("help_areas", helpAreas);
+        // For JSONB arrays, use the cs (contains) operator with proper PostgREST syntax
+        if (helpAreas.length === 1) {
+          // Single help area - use the cs operator
+          searchQuery = searchQuery.filter(
+            "help_areas",
+            "cs",
+            JSON.stringify([helpAreas[0]])
+          );
+        } else {
+          // Multiple help areas - create OR conditions
+          const helpAreaConditions = helpAreas
+            .map((area) => `help_areas.cs.${JSON.stringify([area])}`)
+            .join(",");
+          searchQuery = searchQuery.or(helpAreaConditions);
+        }
       }
 
       // Add pagination and ordering
@@ -870,7 +881,7 @@ export default function MentorFeed() {
         ref={headerRef}
         className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4"
       >
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className="flex items-center justify-between max-w-[1440px] mx-auto">
           <div className="flex items-center">
             <nav className="flex items-center space-x-8 text-sm">
               <span
@@ -935,7 +946,7 @@ export default function MentorFeed() {
 
       {/* Search Bar */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center space-x-4">
+        <div className="max-w-[1440px] mx-auto flex items-center space-x-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -957,7 +968,7 @@ export default function MentorFeed() {
       </div>
 
       {currentView === "feed" ? (
-        <div className="max-w-7xl mx-auto flex">
+        <div className="max-w-[1440px] mx-auto flex">
           {/* Sidebar */}
           <div className="w-80 bg-white border-l border-r border-gray-200 min-h-screen p-6">
             <div className="mb-6">
@@ -1838,7 +1849,7 @@ export default function MentorFeed() {
         </div>
       ) : (
         // Messaging View
-        <div className="max-w-7xl mx-auto flex h-[calc(100vh-140px)]">
+        <div className="max-w-[1440px] mx-auto flex h-[calc(100vh-140px)]">
           {/* Left Panel - Conversations List */}
           <div className="w-80 bg-white border-l border-r border-gray-200 h-full flex flex-col">
             {/* Header */}
