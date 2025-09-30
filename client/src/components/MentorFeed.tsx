@@ -123,6 +123,21 @@ const commonLocations = [
 // Academic levels list (simplified - no individual years)
 const academicLevels = ["undergraduate", "post-bacc", "gap-year"];
 
+// Help areas list (based on questionnaire options)
+const helpAreas = [
+  "mcat-preparation",
+  "personal-statements",
+  "letters-of-recommendation",
+  "interview-skills",
+  "building-school-list",
+  "general-application-strategy",
+  "specialty-insight",
+  "networking-professional-connections",
+  "emotional-support-motivation",
+  "research-mentorship",
+  "coursework-exams",
+];
+
 // Get top universities for pre-med students
 const getTopUniversities = (): string[] => {
   return universities
@@ -182,6 +197,9 @@ export default function MentorFeed() {
   const [selectedAcademicLevels, setSelectedAcademicLevels] = useState<
     string[]
   >([]);
+  const [selectedHelpAreas, setSelectedHelpAreas] = useState<string[]>([]);
+  const [helpAreaQuery, setHelpAreaQuery] = useState("");
+  const [isHelpAreaDropdownOpen, setIsHelpAreaDropdownOpen] = useState(false);
 
   // Messaging state
   const [selectedConversation, setSelectedConversation] = useState<
@@ -403,14 +421,16 @@ export default function MentorFeed() {
     specialties: string[] = selectedSpecialties,
     locations: string[] = selectedLocations,
     universities: string[] = selectedUniversities,
-    academicLevels: string[] = selectedAcademicLevels
+    academicLevels: string[] = selectedAcademicLevels,
+    helpAreas: string[] = selectedHelpAreas
   ) => {
     if (
       !query.trim() &&
       specialties.length === 0 &&
       locations.length === 0 &&
       universities.length === 0 &&
-      academicLevels.length === 0
+      academicLevels.length === 0 &&
+      helpAreas.length === 0
     ) {
       setSearchResults([]);
       setTotalSearchResults(0);
@@ -467,6 +487,11 @@ export default function MentorFeed() {
           return [level];
         });
         searchQuery = searchQuery.in("academic_level", expandedLevels);
+      }
+
+      // Add help areas filters (array field - needs to overlap with selected areas)
+      if (helpAreas.length > 0) {
+        searchQuery = searchQuery.overlaps("help_areas", helpAreas);
       }
 
       // Add pagination and ordering
@@ -625,13 +650,49 @@ export default function MentorFeed() {
     setCurrentPage(1);
   };
 
+  // Help areas filter functions
+  const toggleHelpArea = (area: string) => {
+    setSelectedHelpAreas((prev) =>
+      prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]
+    );
+    setCurrentPage(1); // Reset to page 1 when filters change
+  };
+
+  const clearHelpAreaFilters = () => {
+    setSelectedHelpAreas([]);
+    setCurrentPage(1);
+  };
+
+  // Filter help areas for search
+  const availableHelpAreas = helpAreas.filter(
+    (area) => !selectedHelpAreas.includes(area)
+  );
+
+  const filteredHelpAreas =
+    helpAreaQuery === ""
+      ? availableHelpAreas.slice(0, 6) // Show only top 6 when no search
+      : availableHelpAreas.filter((area) =>
+          formatHelpArea(area)
+            .toLowerCase()
+            .includes(helpAreaQuery.toLowerCase())
+        );
+
+  const addHelpArea = (area: string) => {
+    if (area && !selectedHelpAreas.includes(area)) {
+      setSelectedHelpAreas((prev) => [...prev, area]);
+      setHelpAreaQuery("");
+      setCurrentPage(1);
+    }
+  };
+
   // Determine which data to use: search results or filtered mentees
   const isActiveSearch =
     searchTerm.trim().length > 0 ||
     selectedSpecialties.length > 0 ||
     selectedLocations.length > 0 ||
     selectedUniversities.length > 0 ||
-    selectedAcademicLevels.length > 0;
+    selectedAcademicLevels.length > 0 ||
+    selectedHelpAreas.length > 0;
   const allFilteredMentees = isActiveSearch
     ? searchResults
     : getFilteredMentees();
@@ -668,7 +729,8 @@ export default function MentorFeed() {
         selectedSpecialties,
         selectedLocations,
         selectedUniversities,
-        selectedAcademicLevels
+        selectedAcademicLevels,
+        selectedHelpAreas
       );
     }
   };
@@ -687,7 +749,8 @@ export default function MentorFeed() {
       selectedSpecialties.length === 0 &&
       selectedLocations.length === 0 &&
       selectedUniversities.length === 0 &&
-      selectedAcademicLevels.length === 0
+      selectedAcademicLevels.length === 0 &&
+      selectedHelpAreas.length === 0
     ) {
       setSearchResults([]);
       setTotalSearchResults(0);
@@ -702,7 +765,8 @@ export default function MentorFeed() {
         selectedSpecialties,
         selectedLocations,
         selectedUniversities,
-        selectedAcademicLevels
+        selectedAcademicLevels,
+        selectedHelpAreas
       );
     }, 300); // 300ms debounce
 
@@ -714,6 +778,38 @@ export default function MentorFeed() {
     selectedLocations,
     selectedUniversities,
     selectedAcademicLevels,
+    selectedHelpAreas,
+  ]);
+
+  // Handle clicking outside dropdowns to close them
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+
+      // Check if click is outside dropdowns
+      if (!target.closest(".dropdown-container")) {
+        setIsSpecialtyDropdownOpen(false);
+        setIsLocationDropdownOpen(false);
+        setIsUniversityDropdownOpen(false);
+        setIsHelpAreaDropdownOpen(false);
+      }
+    };
+
+    if (
+      isSpecialtyDropdownOpen ||
+      isLocationDropdownOpen ||
+      isUniversityDropdownOpen ||
+      isHelpAreaDropdownOpen
+    ) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [
+    isSpecialtyDropdownOpen,
+    isLocationDropdownOpen,
+    isUniversityDropdownOpen,
+    isHelpAreaDropdownOpen,
   ]);
 
   // Scroll to top when page changes (but not on initial load)
@@ -910,7 +1006,7 @@ export default function MentorFeed() {
               )}
 
               {/* Add Specialty Dropdown */}
-              <div className="relative">
+              <div className="relative dropdown-container">
                 <button
                   onClick={() =>
                     setIsSpecialtyDropdownOpen(!isSpecialtyDropdownOpen)
@@ -921,53 +1017,45 @@ export default function MentorFeed() {
                 </button>
 
                 {isSpecialtyDropdownOpen && (
-                  <>
-                    {/* Invisible overlay to close dropdown */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsSpecialtyDropdownOpen(false)}
-                    />
-
-                    {/* Dropdown */}
-                    <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
-                      {/* Search bar at top */}
-                      <div className="p-2 border-b border-gray-100">
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
-                          placeholder="Search specialties..."
-                          value={specialtyQuery}
-                          onChange={(event) =>
-                            setSpecialtyQuery(event.target.value)
-                          }
-                          autoFocus
-                        />
-                      </div>
-
-                      {/* Auto-expanding results */}
-                      <div>
-                        {filteredSpecialties.length === 0 &&
-                        specialtyQuery !== "" ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">
-                            No specialties found.
-                          </div>
-                        ) : (
-                          filteredSpecialties.map((specialty) => (
-                            <button
-                              key={specialty}
-                              onClick={() => {
-                                addSpecialty(specialty);
-                                setIsSpecialtyDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
-                            >
-                              {formatSpecialty(specialty)}
-                            </button>
-                          ))
-                        )}
-                      </div>
+                  /* Dropdown */
+                  <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {/* Search bar at top */}
+                    <div className="p-2 border-b border-gray-100">
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
+                        placeholder="Search specialties..."
+                        value={specialtyQuery}
+                        onChange={(event) =>
+                          setSpecialtyQuery(event.target.value)
+                        }
+                        autoFocus
+                      />
                     </div>
-                  </>
+
+                    {/* Auto-expanding results */}
+                    <div>
+                      {filteredSpecialties.length === 0 &&
+                      specialtyQuery !== "" ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No specialties found.
+                        </div>
+                      ) : (
+                        filteredSpecialties.map((specialty) => (
+                          <button
+                            key={specialty}
+                            onClick={() => {
+                              addSpecialty(specialty);
+                              setIsSpecialtyDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
+                          >
+                            {formatSpecialty(specialty)}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -1009,7 +1097,7 @@ export default function MentorFeed() {
               )}
 
               {/* Add Location Dropdown */}
-              <div className="relative">
+              <div className="relative dropdown-container">
                 <button
                   onClick={() =>
                     setIsLocationDropdownOpen(!isLocationDropdownOpen)
@@ -1020,53 +1108,45 @@ export default function MentorFeed() {
                 </button>
 
                 {isLocationDropdownOpen && (
-                  <>
-                    {/* Invisible overlay to close dropdown */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsLocationDropdownOpen(false)}
-                    />
-
-                    {/* Dropdown */}
-                    <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
-                      {/* Search bar at top */}
-                      <div className="p-2 border-b border-gray-100">
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
-                          placeholder="Search locations..."
-                          value={locationQuery}
-                          onChange={(event) =>
-                            setLocationQuery(event.target.value)
-                          }
-                          autoFocus
-                        />
-                      </div>
-
-                      {/* Auto-expanding results */}
-                      <div>
-                        {filteredLocations.length === 0 &&
-                        locationQuery !== "" ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">
-                            No locations found.
-                          </div>
-                        ) : (
-                          filteredLocations.map((location) => (
-                            <button
-                              key={location}
-                              onClick={() => {
-                                addLocation(location);
-                                setIsLocationDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
-                            >
-                              {formatLocation(location)}
-                            </button>
-                          ))
-                        )}
-                      </div>
+                  /* Dropdown */
+                  <div className="absolute z-50 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {/* Search bar at top */}
+                    <div className="p-2 border-b border-gray-100">
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
+                        placeholder="Search locations..."
+                        value={locationQuery}
+                        onChange={(event) =>
+                          setLocationQuery(event.target.value)
+                        }
+                        autoFocus
+                      />
                     </div>
-                  </>
+
+                    {/* Auto-expanding results */}
+                    <div>
+                      {filteredLocations.length === 0 &&
+                      locationQuery !== "" ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No locations found.
+                        </div>
+                      ) : (
+                        filteredLocations.map((location) => (
+                          <button
+                            key={location}
+                            onClick={() => {
+                              addLocation(location);
+                              setIsLocationDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
+                          >
+                            {formatLocation(location)}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -1108,7 +1188,7 @@ export default function MentorFeed() {
               )}
 
               {/* Add University Dropdown */}
-              <div className="relative">
+              <div className="relative dropdown-container">
                 <button
                   onClick={() =>
                     setIsUniversityDropdownOpen(!isUniversityDropdownOpen)
@@ -1119,53 +1199,45 @@ export default function MentorFeed() {
                 </button>
 
                 {isUniversityDropdownOpen && (
-                  <>
-                    {/* Invisible overlay to close dropdown */}
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setIsUniversityDropdownOpen(false)}
-                    />
-
-                    {/* Dropdown */}
-                    <div className="absolute z-50 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg">
-                      {/* Search bar at top */}
-                      <div className="p-2 border-b border-gray-100">
-                        <input
-                          type="text"
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
-                          placeholder="Search universities..."
-                          value={universityQuery}
-                          onChange={(event) =>
-                            setUniversityQuery(event.target.value)
-                          }
-                          autoFocus
-                        />
-                      </div>
-
-                      {/* Auto-expanding results */}
-                      <div>
-                        {filteredUniversities.length === 0 &&
-                        universityQuery !== "" ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">
-                            No universities found.
-                          </div>
-                        ) : (
-                          filteredUniversities.map((university) => (
-                            <button
-                              key={university}
-                              onClick={() => {
-                                addUniversity(university);
-                                setIsUniversityDropdownOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
-                            >
-                              {university}
-                            </button>
-                          ))
-                        )}
-                      </div>
+                  /* Dropdown */
+                  <div className="absolute z-50 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {/* Search bar at top */}
+                    <div className="p-2 border-b border-gray-100">
+                      <input
+                        type="text"
+                        className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
+                        placeholder="Search universities..."
+                        value={universityQuery}
+                        onChange={(event) =>
+                          setUniversityQuery(event.target.value)
+                        }
+                        autoFocus
+                      />
                     </div>
-                  </>
+
+                    {/* Auto-expanding results */}
+                    <div>
+                      {filteredUniversities.length === 0 &&
+                      universityQuery !== "" ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No universities found.
+                        </div>
+                      ) : (
+                        filteredUniversities.map((university) => (
+                          <button
+                            key={university}
+                            onClick={() => {
+                              addUniversity(university);
+                              setIsUniversityDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
+                          >
+                            {university}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -1223,14 +1295,79 @@ export default function MentorFeed() {
 
             {/* Help Areas */}
             <div className="mb-6">
-              <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
-                Help Areas
-              </h4>
-              <input
-                type="text"
-                placeholder="Enter a help area..."
-                className="w-full px-3 py-2 border border-gray-300 text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400 rounded-md"
-              />
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                  Help Areas
+                </h4>
+                {selectedHelpAreas.length > 0 && (
+                  <button
+                    onClick={clearHelpAreaFilters}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+
+              {/* Selected Help Areas */}
+              {selectedHelpAreas.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {selectedHelpAreas.map((area) => (
+                    <div
+                      key={area}
+                      className="bg-primary-100 text-primary-800 px-2 py-1 text-sm rounded border border-primary-500 flex items-center"
+                    >
+                      {formatHelpArea(area)}
+                      <button
+                        onClick={() => toggleHelpArea(area)}
+                        className="ml-2 text-primary-600 hover:text-primary-800"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Help Area Dropdown */}
+              <div className="relative dropdown-container">
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
+                  placeholder="Search help areas..."
+                  value={helpAreaQuery}
+                  onChange={(event) => setHelpAreaQuery(event.target.value)}
+                  onFocus={() => setIsHelpAreaDropdownOpen(true)}
+                />
+
+                {isHelpAreaDropdownOpen && (
+                  /* Dropdown */
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {/* Auto-expanding results */}
+                    <div>
+                      {filteredHelpAreas.length === 0 &&
+                      helpAreaQuery !== "" ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          No help areas found.
+                        </div>
+                      ) : (
+                        filteredHelpAreas.map((area) => (
+                          <button
+                            key={area}
+                            onClick={() => {
+                              addHelpArea(area);
+                              setIsHelpAreaDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-primary-50 hover:text-primary-900 cursor-pointer"
+                          >
+                            {formatHelpArea(area)}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Application Timeline */}
