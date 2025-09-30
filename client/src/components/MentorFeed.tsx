@@ -1427,7 +1427,7 @@ export default function MentorFeed() {
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    className="mr-2"
+                    className="mr-2 accent-primary-600"
                     checked={filterNext6Months}
                     onChange={handleNext6MonthsToggle}
                   />
