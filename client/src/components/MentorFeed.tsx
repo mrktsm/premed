@@ -198,6 +198,8 @@ export default function MentorFeed() {
   const [helpAreaQuery, setHelpAreaQuery] = useState("");
   const [isHelpAreaDropdownOpen, setIsHelpAreaDropdownOpen] = useState(false);
 
+  const [filterNext6Months, setFilterNext6Months] = useState(false);
+
   // Messaging state
   const [selectedConversation, setSelectedConversation] = useState<
     string | null
@@ -419,7 +421,8 @@ export default function MentorFeed() {
     locations: string[] = selectedLocations,
     universities: string[] = selectedUniversities,
     academicLevels: string[] = selectedAcademicLevels,
-    helpAreas: string[] = selectedHelpAreas
+    helpAreas: string[] = selectedHelpAreas,
+    next6Months: boolean = filterNext6Months
   ) => {
     if (
       !query.trim() &&
@@ -427,7 +430,8 @@ export default function MentorFeed() {
       locations.length === 0 &&
       universities.length === 0 &&
       academicLevels.length === 0 &&
-      helpAreas.length === 0
+      helpAreas.length === 0 &&
+      !next6Months
     ) {
       setSearchResults([]);
       setTotalSearchResults(0);
@@ -505,10 +509,25 @@ export default function MentorFeed() {
         }
       }
 
+      // Add next 6 months filter (this cycle and next cycle)
+      if (next6Months) {
+        console.log("Adding next 6 months filter to query");
+        searchQuery = searchQuery.in("application_target", [
+          "this-cycle",
+          "next-cycle",
+        ]);
+      }
+
       // Add pagination and ordering
       const { data, error, count } = await searchQuery
         .range(offset, offset + itemsPerPage - 1)
         .order("created_at", { ascending: false });
+
+      console.log("Search query completed:", {
+        data: data?.length,
+        count,
+        error,
+      });
 
       if (error) throw error;
 
@@ -674,6 +693,14 @@ export default function MentorFeed() {
     setCurrentPage(1);
   };
 
+  // Application timeline filter function
+  const handleNext6MonthsToggle = () => {
+    const newValue = !filterNext6Months;
+    console.log("Timeline filter toggled to:", newValue);
+    setFilterNext6Months(newValue);
+    setCurrentPage(1); // Reset to page 1 when filters change
+  };
+
   // Filter help areas for search
   const availableHelpAreas = helpAreas.filter(
     (area) => !selectedHelpAreas.includes(area)
@@ -703,7 +730,8 @@ export default function MentorFeed() {
     selectedLocations.length > 0 ||
     selectedUniversities.length > 0 ||
     selectedAcademicLevels.length > 0 ||
-    selectedHelpAreas.length > 0;
+    selectedHelpAreas.length > 0 ||
+    filterNext6Months;
   const allFilteredMentees = isActiveSearch
     ? searchResults
     : getFilteredMentees();
@@ -741,7 +769,8 @@ export default function MentorFeed() {
         selectedLocations,
         selectedUniversities,
         selectedAcademicLevels,
-        selectedHelpAreas
+        selectedHelpAreas,
+        filterNext6Months
       );
     }
   };
@@ -755,14 +784,20 @@ export default function MentorFeed() {
 
   // Debounced search effect
   useEffect(() => {
+    console.log(
+      "useEffect triggered with filterNext6Months:",
+      filterNext6Months
+    );
     if (
       !searchTerm.trim() &&
       selectedSpecialties.length === 0 &&
       selectedLocations.length === 0 &&
       selectedUniversities.length === 0 &&
       selectedAcademicLevels.length === 0 &&
-      selectedHelpAreas.length === 0
+      selectedHelpAreas.length === 0 &&
+      !filterNext6Months
     ) {
+      console.log("No filters active, clearing search results");
       setSearchResults([]);
       setTotalSearchResults(0);
       setIsSearching(false);
@@ -777,7 +812,8 @@ export default function MentorFeed() {
         selectedLocations,
         selectedUniversities,
         selectedAcademicLevels,
-        selectedHelpAreas
+        selectedHelpAreas,
+        filterNext6Months
       );
     }, 300); // 300ms debounce
 
@@ -790,6 +826,7 @@ export default function MentorFeed() {
     selectedUniversities,
     selectedAcademicLevels,
     selectedHelpAreas,
+    filterNext6Months,
   ]);
 
   // Handle clicking outside dropdowns to close them
@@ -1387,8 +1424,13 @@ export default function MentorFeed() {
                 Application Timeline
               </h4>
               <div className="text-sm">
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={filterNext6Months}
+                    onChange={handleNext6MonthsToggle}
+                  />
                   Next 6 months
                 </label>
               </div>
