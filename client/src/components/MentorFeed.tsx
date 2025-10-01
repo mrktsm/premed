@@ -297,6 +297,9 @@ export default function MentorFeed() {
     },
   ];
 
+  // Conversations state
+  const [conversations, setConversations] = useState(mockConversations);
+
   const mockMessages = {
     "1": [
       {
@@ -471,8 +474,8 @@ export default function MentorFeed() {
       unreadCount: 1,
     };
 
-    // Add to mock conversations (in real app, this would be saved to database)
-    mockConversations.unshift(newConversation);
+    // Add to conversations state
+    setConversations((prev) => [newConversation, ...prev]);
 
     // Add initial message to messages
     const initialMessage = {
@@ -1992,7 +1995,7 @@ export default function MentorFeed() {
 
             {/* Conversations List */}
             <div className="flex-1 overflow-y-auto space-y-0">
-              {mockConversations.map((conversation) => (
+              {conversations.map((conversation) => (
                 <div
                   key={conversation.id}
                   onClick={() => setSelectedConversation(conversation.id)}
@@ -2056,7 +2059,7 @@ export default function MentorFeed() {
                 {/* Chat Header */}
                 <div className="px-4 py-2 border-b border-gray-200 bg-white">
                   {(() => {
-                    const conversation = mockConversations.find(
+                    const conversation = conversations.find(
                       (c) => c.id === selectedConversation
                     );
                     return conversation ? (
@@ -2079,7 +2082,7 @@ export default function MentorFeed() {
                 <div className="flex-1 overflow-y-auto pt-4 px-4 space-y-4">
                   {messages[selectedConversation as keyof typeof messages]?.map(
                     (message) => {
-                      const conversation = mockConversations.find(
+                      const conversation = conversations.find(
                         (c) => c.id === selectedConversation
                       );
                       const mentorAvatar =
