@@ -206,6 +206,13 @@ export default function MentorFeed() {
   >(null);
   const [messageInput, setMessageInput] = useState<string>("");
 
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [acceptedMentee, setAcceptedMentee] = useState<MenteeProfile | null>(
+    null
+  );
+  const [welcomeMessage, setWelcomeMessage] = useState<string>("");
+
   // Mock message data
   const mockConversations = [
     {
@@ -412,6 +419,84 @@ export default function MentorFeed() {
       }, 100);
     }
   }, [selectedConversation, messages]);
+
+  // Generate personalized welcome message
+  const generateWelcomeMessage = (mentee: MenteeProfile) => {
+    const specialty = formatSpecialty(mentee.primary_specialty_interest);
+    const academicLevel = formatAcademicLevel(mentee.academic_level);
+
+    return `Hi ${
+      mentee.first_name
+    }! I'm excited to be your mentor and help guide you through your ${specialty} journey. I noticed you're a ${academicLevel} student - that's a great time to start building your medical school application. I'm here to support you with ${mentee.help_areas
+      .slice(0, 2)
+      .map(formatHelpArea)
+      .join(" and ")}. Let's start with a quick chat about your goals!`;
+  };
+
+  // Handle accept mentee action
+  const handleAcceptMentee = (mentee: MenteeProfile) => {
+    setAcceptedMentee(mentee);
+    setWelcomeMessage(generateWelcomeMessage(mentee));
+    setShowSuccessModal(true);
+  };
+
+  // Handle success modal actions
+  const handleStartMessaging = () => {
+    setShowSuccessModal(false);
+    setCurrentView("messaging");
+    // Create a new conversation for this mentee
+    const newConversationId = `mentee-${acceptedMentee?.id}`;
+    setSelectedConversation(newConversationId);
+
+    // Add the mentee to conversations list
+    const newConversation = {
+      id: newConversationId,
+      participant: {
+        name: `${acceptedMentee?.first_name} ${acceptedMentee?.last_name}`,
+        avatar: getProfilePicture(
+          acceptedMentee?.first_name || "",
+          acceptedMentee?.last_name || "",
+          acceptedMentee?.id || ""
+        ),
+        status: "Active now",
+        specialty: formatSpecialty(
+          acceptedMentee?.primary_specialty_interest || ""
+        ),
+      },
+      lastMessage: {
+        text: welcomeMessage,
+        timestamp: "now",
+        isRead: false,
+      },
+      unreadCount: 1,
+    };
+
+    // Add to mock conversations (in real app, this would be saved to database)
+    mockConversations.unshift(newConversation);
+
+    // Add initial message to messages
+    const initialMessage = {
+      id: Date.now().toString(),
+      senderId: "mentor-1",
+      text: welcomeMessage,
+      timestamp: new Date().toISOString(),
+      isOwn: true,
+    };
+
+    setMessages((prev) => ({
+      ...prev,
+      [newConversationId]: [initialMessage],
+    }));
+
+    setAcceptedMentee(null);
+    setWelcomeMessage("");
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    setAcceptedMentee(null);
+    setWelcomeMessage("");
+  };
 
   // Server-side search function
   const performSearch = async (
@@ -1737,7 +1822,7 @@ export default function MentorFeed() {
                           <div className="flex space-x-3">
                             <button
                               className="bg-primary-600 text-white px-6 py-2 text-sm font-medium rounded hover:bg-primary-700 transition-colors"
-                              onClick={() => setSelectedMentee(mentee)}
+                              onClick={() => handleAcceptMentee(mentee)}
                             >
                               Accept
                             </button>
@@ -1878,7 +1963,10 @@ export default function MentorFeed() {
                 </div>
 
                 <div className="mt-6 space-y-2">
-                  <button className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700 transition-colors">
+                  <button
+                    className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700 transition-colors"
+                    onClick={() => handleAcceptMentee(selectedMentee)}
+                  >
                     Accept as Mentee
                   </button>
                   <button className="w-full border border-primary-600 text-primary-600 py-2 rounded hover:bg-primary-50 transition-colors">
@@ -2088,6 +2176,98 @@ export default function MentorFeed() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && acceptedMentee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Add a note to your invitation
+                </h2>
+              </div>
+              <button
+                onClick={handleCloseSuccessModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Message Section */}
+            <div className="p-6">
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">
+                  Personalize your invitation
+                </h4>
+                <p className="text-xs text-gray-600 mb-3">
+                  Add a note to introduce yourself and explain why you'd like to
+                  mentor them.
+                </p>
+              </div>
+
+              <div className="relative">
+                <textarea
+                  value={welcomeMessage}
+                  onChange={(e) => setWelcomeMessage(e.target.value)}
+                  className="w-full h-48 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                  placeholder="Hi! I'd love to mentor you and help guide you through your medical journey..."
+                />
+                <div className="absolute bottom-3 right-3 flex items-center space-x-2">
+                  <span className="text-xs text-gray-500">
+                    {welcomeMessage.length}/500
+                  </span>
+                  <div className="w-4 h-4 bg-primary-500 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-3 h-3 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={handleCloseSuccessModal}
+                className="px-4 py-2 text-sm font-medium text-primary-600 bg-white border border-primary-600 rounded-md hover:bg-primary-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleStartMessaging}
+                className="px-6 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition-colors"
+              >
+                Connect
+              </button>
+            </div>
           </div>
         </div>
       )}
