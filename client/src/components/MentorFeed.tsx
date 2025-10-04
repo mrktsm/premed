@@ -5,6 +5,10 @@ import {
   MapPin,
   MessageSquare,
   Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Video,
 } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
@@ -161,7 +165,9 @@ const getTopUniversities = (): string[] => {
 };
 
 export default function MentorFeed() {
-  const [currentView, setCurrentView] = useState<"feed" | "messaging">("feed");
+  const [currentView, setCurrentView] = useState<
+    "feed" | "messaging" | "calendar"
+  >("feed");
   const [selectedMentee, setSelectedMentee] = useState<MenteeProfile | null>(
     null
   );
@@ -179,6 +185,10 @@ export default function MentorFeed() {
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [specialtyQuery, setSpecialtyQuery] = useState("");
   const [isSpecialtyDropdownOpen, setIsSpecialtyDropdownOpen] = useState(false);
+
+  // Calendar state
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedMeeting, setSelectedMeeting] = useState<any | null>(null);
 
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
   const [locationQuery, setLocationQuery] = useState("");
@@ -1028,6 +1038,16 @@ export default function MentorFeed() {
                 onClick={() => setCurrentView("messaging")}
               >
                 MESSAGES
+              </span>
+              <span
+                className={`font-medium cursor-pointer ${
+                  currentView === "calendar"
+                    ? "text-primary-600 border-b-2 border-primary-600"
+                    : "text-primary-600 hover:text-primary-700"
+                }`}
+                onClick={() => setCurrentView("calendar")}
+              >
+                CALENDAR
               </span>
               <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                 MATCHES
@@ -1980,7 +2000,7 @@ export default function MentorFeed() {
             </div>
           )}
         </div>
-      ) : (
+      ) : currentView === "messaging" ? (
         // Messaging View
         <div className="max-w-[1440px] mx-auto flex h-[calc(100vh-140px)]">
           {/* Left Panel - Conversations List */}
@@ -2181,7 +2201,348 @@ export default function MentorFeed() {
             )}
           </div>
         </div>
-      )}
+      ) : currentView === "calendar" ? (
+        // Calendar View - Cal.com inspired three-panel layout
+        <div className="max-w-[1440px] mx-auto flex h-[calc(100vh-140px)]">
+          {/* Left Panel - Meeting Details */}
+          {selectedMeeting ? (
+            <div className="w-80 bg-white border-l border-r border-gray-200 overflow-y-auto">
+              {/* Header */}
+              <div className="px-6 pt-6 pb-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900">Meeting Details</h3>
+                  <button
+                    onClick={() => setSelectedMeeting(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="px-6">
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-6">
+                  Mentorship
+                </p>
+
+                {/* Meeting Title */}
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    {selectedMeeting.title}
+                  </h2>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    With {selectedMeeting.mentee}
+                  </p>
+                </div>
+
+                {/* Meeting Info - Minimal Icons */}
+                <div className="space-y-4 mb-10">
+                  {/* Duration */}
+                  <div className="flex items-center space-x-3">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-700">
+                      {selectedMeeting.duration}
+                    </span>
+                  </div>
+
+                  {/* Platform */}
+                  <div className="flex items-center space-x-3">
+                    <Video className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-700">Zoom</span>
+                  </div>
+
+                  {/* Time */}
+                  <div className="flex items-center space-x-3">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-700">
+                      {selectedMeeting.time}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons - Cleaner */}
+                <div className="space-y-2 pb-6">
+                  <button className="w-full bg-primary-600 text-white py-2.5 rounded-md hover:bg-primary-700 transition-colors font-medium text-sm">
+                    Join Meeting
+                  </button>
+                  <button
+                    onClick={() => setSelectedMeeting(null)}
+                    className="w-full text-gray-600 hover:text-gray-900 py-2.5 rounded-md hover:bg-gray-50 transition-colors font-medium text-sm"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="w-80 bg-white border-l border-r border-gray-200 h-full flex flex-col">
+              {/* Header */}
+              <div className="px-6 pt-6 pb-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900">Meeting Details</h3>
+                  <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                </div>
+              </div>
+
+              {/* Empty State */}
+              <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center">
+                  <p className="text-sm text-gray-500">
+                    Select a meeting to view details
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Center Panel - Calendar */}
+          <div className="flex-1 bg-white flex flex-col">
+            <div className="p-6">
+              {/* Calendar Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {selectedDate.toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </h2>
+                <div className="flex items-center space-x-2">
+                  <button
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => {
+                      const newDate = new Date(selectedDate);
+                      newDate.setMonth(newDate.getMonth() - 1);
+                      setSelectedDate(newDate);
+                    }}
+                  >
+                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                  </button>
+                  <button
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => setSelectedDate(new Date())}
+                  >
+                    Today
+                  </button>
+                  <button
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => {
+                      const newDate = new Date(selectedDate);
+                      newDate.setMonth(newDate.getMonth() + 1);
+                      setSelectedDate(newDate);
+                    }}
+                  >
+                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-2">
+                {/* Weekday Headers */}
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                  (day) => (
+                    <div
+                      key={day}
+                      className="text-center py-2 text-sm font-medium text-gray-600"
+                    >
+                      {day}
+                    </div>
+                  )
+                )}
+
+                {/* Calendar Days */}
+                {(() => {
+                  const year = selectedDate.getFullYear();
+                  const month = selectedDate.getMonth();
+                  const firstDay = new Date(year, month, 1).getDay();
+                  const daysInMonth = new Date(year, month + 1, 0).getDate();
+                  const today = new Date();
+                  const isToday = (day: number) =>
+                    day === today.getDate() &&
+                    month === today.getMonth() &&
+                    year === today.getFullYear();
+
+                  const days = [];
+
+                  // Empty cells for days before month starts
+                  for (let i = 0; i < firstDay; i++) {
+                    days.push(
+                      <div key={`empty-${i}`} className="aspect-square"></div>
+                    );
+                  }
+
+                  // Days of the month
+                  for (let day = 1; day <= daysInMonth; day++) {
+                    const hasEvent = day === 10 || day === 11 || day === 12; // Mock events
+                    days.push(
+                      <button
+                        key={day}
+                        className={`aspect-square p-2 rounded-lg text-sm font-medium transition-all relative
+                          ${
+                            isToday(day)
+                              ? "bg-primary-600 text-white hover:bg-primary-700"
+                              : "hover:bg-gray-100 text-gray-900"
+                          }
+                          ${
+                            hasEvent && !isToday(day)
+                              ? "bg-blue-50 border border-blue-200"
+                              : ""
+                          }
+                        `}
+                      >
+                        {day}
+                        {hasEvent && !isToday(day) && (
+                          <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
+                            <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  }
+
+                  return days;
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel - Today's Schedule */}
+          <div className="w-96 bg-white border-l border-gray-200 h-full flex flex-col overflow-y-auto">
+            {/* Header */}
+            <div className="px-6 pt-6 pb-6">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-gray-900">Today's Schedule</h3>
+                <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                  + New
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6">
+              {/* Time slots for today */}
+              <div className="space-y-3 mb-8">
+                {/* Scheduled Meeting 1 */}
+                <div
+                  className="p-4 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:shadow-sm transition-all"
+                  onClick={() =>
+                    setSelectedMeeting({
+                      id: 1,
+                      title: "MCAT Strategy Session",
+                      mentee: "Emily Chen",
+                      time: "Today, 2:00 PM",
+                      duration: "30 min",
+                      type: "Zoom",
+                    })
+                  }
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="text-sm font-semibold text-gray-900">
+                      2:00 PM - 2:30 PM
+                    </div>
+                    <Video className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">
+                    MCAT Strategy Session
+                  </h4>
+                  <p className="text-xs text-gray-600 mb-3">with Emily Chen</p>
+                  <button className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium">
+                    Join Meeting
+                  </button>
+                </div>
+
+                {/* Available slots */}
+                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+                  <div className="text-sm text-gray-400">3:00 PM - 3:30 PM</div>
+                  <p className="text-xs text-gray-400 mt-1">Available</p>
+                </div>
+
+                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+                  <div className="text-sm text-gray-400">3:30 PM - 4:00 PM</div>
+                  <p className="text-xs text-gray-400 mt-1">Available</p>
+                </div>
+
+                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+                  <div className="text-sm text-gray-400">4:00 PM - 4:30 PM</div>
+                  <p className="text-xs text-gray-400 mt-1">Available</p>
+                </div>
+
+                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
+                  <div className="text-sm text-gray-400">4:30 PM - 5:00 PM</div>
+                  <p className="text-xs text-gray-400 mt-1">Available</p>
+                </div>
+              </div>
+
+              {/* Upcoming section */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-900 mb-4">
+                  Upcoming This Week
+                </h4>
+                <div className="space-y-3">
+                  {/* Tomorrow's meeting */}
+                  <div
+                    className="p-3 border border-gray-200 rounded-lg hover:border-primary-500 hover:shadow-sm transition-all cursor-pointer"
+                    onClick={() =>
+                      setSelectedMeeting({
+                        id: 2,
+                        title: "Application Review",
+                        mentee: "Marcus Rodriguez",
+                        time: "Tomorrow, 10:00 AM",
+                        duration: "45 min",
+                        type: "Zoom",
+                      })
+                    }
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-10 bg-green-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-500">
+                          Tomorrow, 10:00 AM
+                        </p>
+                        <h5 className="text-sm font-medium text-gray-900">
+                          Application Review
+                        </h5>
+                        <p className="text-xs text-gray-600">
+                          Marcus Rodriguez • 45 min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Future meeting */}
+                  <div
+                    className="p-3 border border-gray-200 rounded-lg hover:border-primary-500 hover:shadow-sm transition-all cursor-pointer"
+                    onClick={() =>
+                      setSelectedMeeting({
+                        id: 3,
+                        title: "Research Opportunities",
+                        mentee: "Sarah Kim",
+                        time: "Dec 12, 3:30 PM",
+                        duration: "30 min",
+                        type: "Zoom",
+                      })
+                    }
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-1 h-10 bg-purple-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-500">Dec 12, 3:30 PM</p>
+                        <h5 className="text-sm font-medium text-gray-900">
+                          Research Opportunities
+                        </h5>
+                        <p className="text-xs text-gray-600">
+                          Sarah Kim • 30 min
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Success Modal */}
       {showSuccessModal && acceptedMentee && (
