@@ -2267,7 +2267,7 @@ export default function MentorFeed() {
                   </button>
                   <button
                     onClick={() => setSelectedMeeting(null)}
-                    className="w-full text-gray-600 hover:text-gray-900 py-2.5 rounded-md hover:bg-gray-50 transition-colors font-medium text-sm"
+                    className="w-full border border-primary-600 text-primary-600 py-2.5 rounded-md hover:bg-primary-50 transition-colors font-medium text-sm"
                   >
                     Close
                   </button>
@@ -2445,10 +2445,7 @@ export default function MentorFeed() {
                   <h4 className="text-sm font-medium text-gray-900 mb-1">
                     MCAT Strategy Session
                   </h4>
-                  <p className="text-xs text-gray-600 mb-3">with Emily Chen</p>
-                  <button className="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium">
-                    Join Meeting
-                  </button>
+                  <p className="text-xs text-gray-600">with Emily Chen</p>
                 </div>
 
                 {/* Available slots */}
