@@ -2381,19 +2381,16 @@ export default function MentorFeed() {
                           ${
                             isToday(day)
                               ? "bg-primary-600 text-white hover:bg-primary-700"
+                              : hasEvent
+                              ? "bg-primary-50 border border-primary-200 hover:bg-primary-100 text-gray-900"
                               : "hover:bg-gray-100 text-gray-900"
-                          }
-                          ${
-                            hasEvent && !isToday(day)
-                              ? "bg-blue-50 border border-blue-200"
-                              : ""
                           }
                         `}
                       >
                         {day}
                         {hasEvent && !isToday(day) && (
                           <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex space-x-0.5">
-                            <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                            <div className="w-1 h-1 bg-primary-500 rounded-full"></div>
                           </div>
                         )}
                       </button>
@@ -2424,7 +2421,11 @@ export default function MentorFeed() {
               <div className="space-y-3 mb-8">
                 {/* Scheduled Meeting 1 */}
                 <div
-                  className="p-4 bg-blue-50 border border-blue-200 rounded-lg cursor-pointer hover:shadow-sm transition-all"
+                  className={`p-3 rounded-lg hover:shadow-sm transition-all cursor-pointer ${
+                    selectedMeeting?.id === 1
+                      ? "bg-primary-50 border border-primary-500"
+                      : "border border-gray-200"
+                  }`}
                   onClick={() =>
                     setSelectedMeeting({
                       id: 1,
@@ -2436,49 +2437,34 @@ export default function MentorFeed() {
                     })
                   }
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="text-sm font-semibold text-gray-900">
-                      2:00 PM - 2:30 PM
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1 h-10 bg-primary-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-500">Today, 2:00 PM</p>
+                      <h5 className="text-sm font-medium text-gray-900">
+                        MCAT Strategy Session
+                      </h5>
+                      <p className="text-xs text-gray-600">
+                        Emily Chen • 30 min
+                      </p>
                     </div>
-                    <Video className="w-4 h-4 text-gray-600" />
                   </div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-1">
-                    MCAT Strategy Session
-                  </h4>
-                  <p className="text-xs text-gray-600">with Emily Chen</p>
-                </div>
-
-                {/* Available slots */}
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-                  <div className="text-sm text-gray-400">3:00 PM - 3:30 PM</div>
-                  <p className="text-xs text-gray-400 mt-1">Available</p>
-                </div>
-
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-                  <div className="text-sm text-gray-400">3:30 PM - 4:00 PM</div>
-                  <p className="text-xs text-gray-400 mt-1">Available</p>
-                </div>
-
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-                  <div className="text-sm text-gray-400">4:00 PM - 4:30 PM</div>
-                  <p className="text-xs text-gray-400 mt-1">Available</p>
-                </div>
-
-                <div className="p-4 border border-dashed border-gray-300 rounded-lg">
-                  <div className="text-sm text-gray-400">4:30 PM - 5:00 PM</div>
-                  <p className="text-xs text-gray-400 mt-1">Available</p>
                 </div>
               </div>
 
               {/* Upcoming section */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="pt-6 border-t border-gray-200">
                 <h4 className="text-sm font-semibold text-gray-900 mb-4">
                   Upcoming This Week
                 </h4>
                 <div className="space-y-3">
                   {/* Tomorrow's meeting */}
                   <div
-                    className="p-3 border border-gray-200 rounded-lg hover:border-primary-500 hover:shadow-sm transition-all cursor-pointer"
+                    className={`p-3 rounded-lg hover:shadow-sm transition-all cursor-pointer ${
+                      selectedMeeting?.id === 2
+                        ? "bg-primary-50 border border-primary-500"
+                        : "border border-gray-200"
+                    }`}
                     onClick={() =>
                       setSelectedMeeting({
                         id: 2,
@@ -2490,8 +2476,8 @@ export default function MentorFeed() {
                       })
                     }
                   >
-                    <div className="flex items-center space-x-2 mb-1">
-                      <div className="w-1 h-10 bg-green-500 rounded-full"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-1 h-10 bg-primary-500 rounded-full"></div>
                       <div className="flex-1">
                         <p className="text-xs text-gray-500">
                           Tomorrow, 10:00 AM
@@ -2508,7 +2494,11 @@ export default function MentorFeed() {
 
                   {/* Future meeting */}
                   <div
-                    className="p-3 border border-gray-200 rounded-lg hover:border-primary-500 hover:shadow-sm transition-all cursor-pointer"
+                    className={`p-3 rounded-lg hover:shadow-sm transition-all cursor-pointer ${
+                      selectedMeeting?.id === 3
+                        ? "bg-primary-50 border border-primary-500"
+                        : "border border-gray-200"
+                    }`}
                     onClick={() =>
                       setSelectedMeeting({
                         id: 3,
@@ -2520,7 +2510,7 @@ export default function MentorFeed() {
                       })
                     }
                   >
-                    <div className="flex items-center space-x-2 mb-1">
+                    <div className="flex items-center space-x-2">
                       <div className="w-1 h-10 bg-purple-500 rounded-full"></div>
                       <div className="flex-1">
                         <p className="text-xs text-gray-500">Dec 12, 3:30 PM</p>
