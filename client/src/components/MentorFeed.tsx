@@ -2210,7 +2210,9 @@ export default function MentorFeed() {
               {/* Header */}
               <div className="px-6 pt-6 pb-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-gray-900">Meeting Details</h3>
+                  <h3 className="font-medium text-gray-900">
+                    {selectedMeeting.mentee}
+                  </h3>
                   <button
                     onClick={() => setSelectedMeeting(null)}
                     className="text-gray-400 hover:text-gray-600"
@@ -2222,17 +2224,14 @@ export default function MentorFeed() {
 
               {/* Content */}
               <div className="px-6">
-                <p className="text-xs text-gray-500 uppercase tracking-wide mb-6">
-                  Mentorship
-                </p>
-
                 {/* Meeting Title */}
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
                     {selectedMeeting.title}
                   </h2>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    With {selectedMeeting.mentee}
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    A focused mentorship session to discuss medical school
+                    preparation and career guidance.
                   </p>
                 </div>
 
@@ -2301,7 +2300,7 @@ export default function MentorFeed() {
             <div className="p-6">
               {/* Calendar Header */}
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-lg font-semibold text-gray-900">
                   {selectedDate.toLocaleDateString("en-US", {
                     month: "long",
                     year: "numeric",
