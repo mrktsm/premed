@@ -1047,7 +1047,7 @@ export default function MentorFeed() {
                 }`}
                 onClick={() => setCurrentView("calendar")}
               >
-                CALENDAR
+                SCHEDULE
               </span>
               <span className="text-primary-600 hover:text-primary-700 cursor-pointer font-medium">
                 MATCHES
@@ -2210,9 +2210,20 @@ export default function MentorFeed() {
               {/* Header */}
               <div className="px-6 pt-6 pb-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-gray-900">
-                    {selectedMeeting.mentee}
-                  </h3>
+                  <div className="flex items-center space-x-2">
+                    <img
+                      src={getProfilePicture(
+                        selectedMeeting.mentee.split(" ")[0],
+                        selectedMeeting.mentee.split(" ")[1] || "",
+                        selectedMeeting.mentee
+                      )}
+                      alt={selectedMeeting.mentee}
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    />
+                    <h3 className="font-medium text-gray-900">
+                      {selectedMeeting.mentee}
+                    </h3>
+                  </div>
                   <button
                     onClick={() => setSelectedMeeting(null)}
                     className="text-gray-400 hover:text-gray-600"
@@ -2404,7 +2415,7 @@ export default function MentorFeed() {
           </div>
 
           {/* Right Panel - Today's Schedule */}
-          <div className="w-96 bg-white border-l border-gray-200 h-full flex flex-col overflow-y-auto">
+          <div className="w-96 bg-white border-l border-r border-gray-200 h-full flex flex-col overflow-y-auto">
             {/* Header */}
             <div className="px-6 pt-6 pb-6">
               <div className="flex items-center justify-between">
@@ -2511,7 +2522,7 @@ export default function MentorFeed() {
                     }
                   >
                     <div className="flex items-center space-x-2">
-                      <div className="w-1 h-10 bg-purple-500 rounded-full"></div>
+                      <div className="w-1 h-10 bg-primary-500 rounded-full"></div>
                       <div className="flex-1">
                         <p className="text-xs text-gray-500">Dec 12, 3:30 PM</p>
                         <h5 className="text-sm font-medium text-gray-900">
