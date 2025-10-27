@@ -24,6 +24,7 @@ interface Message {
   timestamp: string;
   isOwn: boolean;
   showBookingPrompt?: boolean;
+  showAcceptPrompt?: boolean;
 }
 
 interface MessagesData {
@@ -213,6 +214,11 @@ export default function MentorFeed() {
     string | null
   >(null);
   const [messageInput, setMessageInput] = useState<string>("");
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  const [isAcceptanceMessage, setIsAcceptanceMessage] = useState(false);
+  const [acceptedConversations, setAcceptedConversations] = useState<
+    Set<string>
+  >(new Set());
 
   // Success modal state
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -249,11 +255,11 @@ export default function MentorFeed() {
         specialty: "Neurosurgery",
       },
       lastMessage: {
-        text: "I have some questions about the MCAT preparation timeline you mentioned...",
-        timestamp: "1h",
+        text: "Hi Dr. Johnson, I came across your profile and would love to have you as my mentor...",
+        timestamp: "15m",
         isRead: false,
       },
-      unreadCount: 2,
+      unreadCount: 1,
     },
     {
       id: "3",
@@ -330,16 +336,10 @@ export default function MentorFeed() {
       {
         id: "1",
         senderId: "marcus-rodriguez",
-        text: "Hi Dr. Johnson, I hope you're doing well!",
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-        isOwn: false,
-      },
-      {
-        id: "2",
-        senderId: "marcus-rodriguez",
-        text: "I have some questions about the MCAT preparation timeline you mentioned in our last call. When do you think I should start studying?",
+        text: "Hi Dr. Johnson, I came across your profile and was really impressed by your background in neurosurgery. I'm a junior pre-med student interested in pursuing a similar path. I would be honored if you would consider being my mentor. I'm particularly interested in learning about research opportunities and the residency application process. Looking forward to hearing from you!",
         timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
         isOwn: false,
+        showAcceptPrompt: true,
       },
     ],
   };
@@ -376,6 +376,7 @@ export default function MentorFeed() {
       text: messageInput.trim(),
       timestamp: new Date().toISOString(),
       isOwn: true,
+      showBookingPrompt: isAcceptanceMessage, // Show booking prompt if this is the acceptance message
     };
 
     setMessages((prev) => ({
@@ -387,6 +388,12 @@ export default function MentorFeed() {
     }));
 
     setMessageInput("");
+    setIsAcceptanceMessage(false); // Reset acceptance flag
+
+    // Reset textarea height
+    if (messageInputRef.current) {
+      messageInputRef.current.style.height = "auto";
+    }
 
     // Scroll to bottom after message is sent
     setTimeout(() => {
@@ -2074,6 +2081,87 @@ export default function MentorFeed() {
                                   </div>
                                 </div>
                               )}
+
+                              {/* Accept Prompt Box - shown when mentee requests you as mentor */}
+                              {message.showAcceptPrompt && (
+                                <div className="flex items-start space-x-3 mt-2">
+                                  <div className="w-8 flex-shrink-0"></div>
+                                  <div className="flex flex-col max-w-md w-full">
+                                    <div
+                                      className={`rounded-lg p-4 shadow-sm border-2 ${
+                                        (isAcceptanceMessage &&
+                                          selectedConversation === "2") ||
+                                        acceptedConversations.has("2")
+                                          ? "bg-gray-50 border-gray-300"
+                                          : "bg-primary-50 border-primary-200"
+                                      }`}
+                                    >
+                                      <h4
+                                        className={`text-sm font-semibold mb-1 ${
+                                          (isAcceptanceMessage &&
+                                            selectedConversation === "2") ||
+                                          acceptedConversations.has("2")
+                                            ? "text-gray-600"
+                                            : "text-gray-900"
+                                        }`}
+                                      >
+                                        Marcus would like you as their mentor!
+                                      </h4>
+                                      <p
+                                        className={`text-xs mb-3 ${
+                                          (isAcceptanceMessage &&
+                                            selectedConversation === "2") ||
+                                          acceptedConversations.has("2")
+                                            ? "text-gray-500"
+                                            : "text-gray-600"
+                                        }`}
+                                      >
+                                        Review their profile and accept to start
+                                        mentoring
+                                      </p>
+                                      {(isAcceptanceMessage &&
+                                        selectedConversation === "2") ||
+                                      acceptedConversations.has("2") ? (
+                                        <div className="w-full bg-gray-300 text-gray-500 text-sm font-medium px-4 py-2 rounded-md cursor-not-allowed text-center">
+                                          Accepted
+                                        </div>
+                                      ) : (
+                                        <button
+                                          onClick={() => {
+                                            // Mark this conversation as accepted permanently
+                                            setAcceptedConversations((prev) =>
+                                              new Set(prev).add("2")
+                                            );
+
+                                            // Pre-fill the message input with suggested text
+                                            setMessageInput(
+                                              "Hi Marcus! I'd be happy to be your mentor. I'm excited to help guide you through your journey into neurosurgery. Let's schedule our first meeting to discuss your goals!"
+                                            );
+
+                                            // Mark that the next message should show booking prompt
+                                            setIsAcceptanceMessage(true);
+
+                                            // Focus the message input and auto-resize
+                                            setTimeout(() => {
+                                              if (messageInputRef.current) {
+                                                messageInputRef.current.focus();
+                                                messageInputRef.current.style.height =
+                                                  "auto";
+                                                messageInputRef.current.style.height =
+                                                  messageInputRef.current
+                                                    .scrollHeight + "px";
+                                              }
+                                            }, 100);
+                                          }}
+                                          className="w-full bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors"
+                                        >
+                                          Accept as Mentee
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </>
                           )}
                         </div>
@@ -2085,18 +2173,38 @@ export default function MentorFeed() {
 
                 {/* Message Input */}
                 <div className="sticky bottom-0 bg-white pb-4 px-4">
+                  {isAcceptanceMessage && (
+                    <div className="mb-2 text-xs text-primary-600 font-medium">
+                      ✓ Mentorship accepted! Customize your message below and
+                      send.
+                    </div>
+                  )}
                   <div className="relative">
-                    <input
-                      type="text"
+                    <textarea
+                      ref={messageInputRef}
                       value={messageInput}
-                      onChange={(e) => setMessageInput(e.target.value)}
+                      onChange={(e) => {
+                        setMessageInput(e.target.value);
+                        // Auto-resize textarea based on content
+                        if (messageInputRef.current) {
+                          messageInputRef.current.style.height = "auto";
+                          messageInputRef.current.style.height =
+                            messageInputRef.current.scrollHeight + "px";
+                        }
+                      }}
                       onKeyPress={handleKeyPress}
                       placeholder="Type a message..."
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-md focus:outline-none bg-white transition-all duration-200 focus:border-gray-400"
+                      rows={1}
+                      className={`w-full px-4 py-3 pr-12 border rounded-md focus:outline-none transition-all duration-200 resize-none overflow-hidden ${
+                        isAcceptanceMessage
+                          ? "border-primary-400 bg-primary-50/50 focus:border-primary-500"
+                          : "border-gray-300 bg-white focus:border-gray-400"
+                      }`}
+                      style={{ minHeight: "48px", maxHeight: "200px" }}
                     />
                     <button
                       onClick={sendMessage}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center w-8 h-8"
+                      className="absolute right-2 bottom-3 text-primary-600 hover:text-primary-700 transition-colors flex items-center justify-center w-8 h-8"
                     >
                       <FontAwesomeIcon
                         icon={faPaperPlane}
