@@ -23,6 +23,7 @@ interface Message {
   text: string;
   timestamp: string;
   isOwn: boolean;
+  showBookingPrompt?: boolean;
 }
 
 interface MessagesData {
@@ -168,9 +169,6 @@ export default function MentorFeed() {
   const [currentView, setCurrentView] = useState<
     "feed" | "messaging" | "calendar"
   >("feed");
-  const [selectedMentee, setSelectedMentee] = useState<MenteeProfile | null>(
-    null
-  );
   const [searchTerm, setSearchTerm] = useState("");
   const [mentees, setMentees] = useState<MenteeProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -317,35 +315,15 @@ export default function MentorFeed() {
         senderId: "emily-chen",
         text: "Hi Dr. Johnson! Thank you so much for accepting me as your mentee. I'm really excited to work with you!",
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-        isOwn: false,
+        isOwn: true,
       },
       {
         id: "2",
         senderId: "mentor",
         text: "Welcome Emily! I'm excited to help guide you through your pre-med journey. What specific areas would you like to focus on first?",
         timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(), // 1.5 hours ago
-        isOwn: true,
-      },
-      {
-        id: "3",
-        senderId: "emily-chen",
-        text: "I'm particularly interested in cardiology and would love to learn more about research opportunities. Also, I'm a bit nervous about the MCAT timeline.",
-        timestamp: new Date(Date.now() - 1.2 * 60 * 60 * 1000).toISOString(), // 1.2 hours ago
         isOwn: false,
-      },
-      {
-        id: "4",
-        senderId: "mentor",
-        text: "Those are great areas to focus on! For cardiology research, I can connect you with Dr. Smith in our lab. As for the MCAT, what's your current timeline looking like?",
-        timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
-        isOwn: true,
-      },
-      {
-        id: "5",
-        senderId: "emily-chen",
-        text: "Thank you for accepting me as your mentee! I'm really excited to learn from you.",
-        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-        isOwn: false,
+        showBookingPrompt: true,
       },
     ],
     "2": [
@@ -1746,34 +1724,24 @@ export default function MentorFeed() {
                     <div className="flex">
                       {/* Profile Image */}
                       <div className="flex-shrink-0 mr-4">
-                        <button
-                          onClick={() => setSelectedMentee(mentee)}
-                          className="hover:opacity-80 transition-opacity"
-                        >
-                          <img
-                            src={getProfilePicture(
-                              mentee.first_name,
-                              mentee.last_name,
-                              mentee.id
-                            )}
-                            alt={`${mentee.first_name} ${mentee.last_name}`}
-                            className="w-16 h-16 rounded-full object-cover"
-                          />
-                        </button>
+                        <img
+                          src={getProfilePicture(
+                            mentee.first_name,
+                            mentee.last_name,
+                            mentee.id
+                          )}
+                          alt={`${mentee.first_name} ${mentee.last_name}`}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
                       </div>
 
                       {/* Main Content */}
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
                           <div>
-                            <button
-                              onClick={() => setSelectedMentee(mentee)}
-                              className="text-left hover:text-primary-600 transition-colors"
-                            >
-                              <h3 className="text-lg font-medium text-gray-900">
-                                {mentee.first_name} {mentee.last_name}
-                              </h3>
-                            </button>
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {mentee.first_name} {mentee.last_name}
+                            </h3>
                             <p className="text-gray-600 text-sm mb-1">
                               {formatAcademicLevel(mentee.academic_level)} •
                               Pre-med
@@ -1908,97 +1876,6 @@ export default function MentorFeed() {
               </div>
             )}
           </div>
-
-          {/* Right Panel - Selected Mentee Details */}
-          {selectedMentee && (
-            <div className="w-80 bg-white border-l border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium">Mentee Details</h3>
-                <button
-                  onClick={() => setSelectedMentee(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div>
-                <div className="text-center mb-4">
-                  <img
-                    src={getProfilePicture(
-                      selectedMentee.first_name,
-                      selectedMentee.last_name,
-                      selectedMentee.id
-                    )}
-                    alt={`${selectedMentee.first_name} ${selectedMentee.last_name}`}
-                    className="w-20 h-20 rounded-full mx-auto mb-2"
-                  />
-                  <h4 className="font-medium">
-                    {selectedMentee.first_name} {selectedMentee.last_name}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    {formatAcademicLevel(selectedMentee.academic_level)} •
-                    Pre-med
-                  </p>
-                </div>
-
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <span className="font-medium">Target Specialty:</span>
-                    <span className="ml-2">
-                      {formatSpecialty(
-                        selectedMentee.primary_specialty_interest
-                      )}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Application Target:</span>
-                    <span className="ml-2">
-                      {selectedMentee.application_target.replace(/-/g, " ")}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">MCAT Status:</span>
-                    <span className="ml-2">
-                      {selectedMentee.mcat_status.replace(/-/g, " ")}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Location:</span>
-                    <span className="ml-2">
-                      {selectedMentee.city_state || "Not specified"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <h5 className="font-medium mb-2">Help Areas:</h5>
-                  <div className="flex flex-wrap gap-1">
-                    {selectedMentee.help_areas.map((area) => (
-                      <span
-                        key={area}
-                        className="bg-primary-100 text-primary-800 px-2 py-1 rounded text-xs border border-primary-500"
-                      >
-                        {formatHelpArea(area)}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-6 space-y-2">
-                  <button
-                    className="w-full bg-primary-600 text-white py-2 rounded hover:bg-primary-700 transition-colors"
-                    onClick={() => handleAcceptMentee(selectedMentee)}
-                  >
-                    Accept as Mentee
-                  </button>
-                  <button className="w-full border border-primary-600 text-primary-600 py-2 rounded hover:bg-primary-50 transition-colors">
-                    Pass
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       ) : currentView === "messaging" ? (
         // Messaging View
@@ -2112,48 +1989,92 @@ export default function MentorFeed() {
                         <div key={message.id}>
                           {message.isOwn ? (
                             // Your messages (right-aligned)
-                            <div className="flex items-start justify-end space-x-3">
-                              <div className="flex flex-col items-end max-w-md">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className="text-xs text-gray-500">
-                                    {formatTimestamp(message.timestamp)}
-                                  </span>
-                                  <span className="text-sm font-medium text-gray-900">
-                                    You
-                                  </span>
+                            <>
+                              <div className="flex items-start justify-end space-x-3">
+                                <div className="flex flex-col items-end max-w-md">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="text-xs text-gray-500">
+                                      {formatTimestamp(message.timestamp)}
+                                    </span>
+                                    <span className="text-sm font-medium text-gray-900">
+                                      You
+                                    </span>
+                                  </div>
+                                  <div className="bg-primary-600 text-white rounded-lg px-3 py-2">
+                                    <p className="text-sm">{message.text}</p>
+                                  </div>
                                 </div>
-                                <div className="bg-primary-600 text-white rounded-lg px-3 py-2">
-                                  <p className="text-sm">{message.text}</p>
-                                </div>
+                                <img
+                                  src={mentorAvatar}
+                                  alt="Your profile"
+                                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                />
                               </div>
-                              <img
-                                src={mentorAvatar}
-                                alt="Your profile"
-                                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                              />
-                            </div>
+                            </>
                           ) : (
                             // Their messages (left-aligned)
-                            <div className="flex items-start space-x-3">
-                              <img
-                                src={conversation?.participant.avatar}
-                                alt={conversation?.participant.name}
-                                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                              />
-                              <div className="flex flex-col max-w-md">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className="text-sm font-medium text-gray-900">
-                                    {conversation?.participant.name}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    {formatTimestamp(message.timestamp)}
-                                  </span>
-                                </div>
-                                <div className="bg-gray-100 text-gray-900 rounded-lg px-3 py-2">
-                                  <p className="text-sm">{message.text}</p>
+                            <>
+                              <div className="flex items-start space-x-3">
+                                <img
+                                  src={conversation?.participant.avatar}
+                                  alt={conversation?.participant.name}
+                                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                                />
+                                <div className="flex flex-col max-w-md">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      {conversation?.participant.name}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {formatTimestamp(message.timestamp)}
+                                    </span>
+                                  </div>
+                                  <div className="bg-gray-100 text-gray-900 rounded-lg px-3 py-2">
+                                    <p className="text-sm">{message.text}</p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
+
+                              {/* Booking Prompt Box - shown after mentor accepts */}
+                              {message.showBookingPrompt && (
+                                <div className="flex items-start space-x-3 mt-2">
+                                  <div className="w-8 flex-shrink-0"></div>
+                                  <div className="flex flex-col max-w-md w-full">
+                                    <div className="bg-primary-50 border-2 border-primary-200 rounded-lg p-4 shadow-sm">
+                                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                                        Dr. Johnson accepted your mentorship
+                                        request!
+                                      </h4>
+                                      <p className="text-xs text-gray-600 mb-3">
+                                        Schedule your first session to get
+                                        started on your pre-med journey
+                                      </p>
+                                      <button
+                                        onClick={() =>
+                                          setCurrentView("calendar")
+                                        }
+                                        className="w-full bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors flex items-center justify-center space-x-2"
+                                      >
+                                        <svg
+                                          className="w-4 h-4"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                          />
+                                        </svg>
+                                        <span>Schedule First Meeting</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       );
