@@ -1719,6 +1719,68 @@ export default function MentorFeed() {
                 </div>
               )}
 
+            {/* Skeleton Loaders */}
+            {loading && (
+              <div className="space-y-0">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white border-t border-gray-200 p-6 animate-pulse"
+                  >
+                    <div className="flex">
+                      {/* Profile Image Skeleton */}
+                      <div className="flex-shrink-0 mr-4">
+                        <div className="w-16 h-16 rounded-full bg-gray-200"></div>
+                      </div>
+
+                      {/* Main Content Skeleton */}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="h-5 bg-gray-200 rounded w-1/3 mb-2"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/4 mb-1"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/5"></div>
+                          </div>
+
+                          {/* Actions Skeleton */}
+                          <div className="flex space-x-2">
+                            <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                            <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                          </div>
+                        </div>
+
+                        {/* Academic Info Skeleton */}
+                        <div className="mt-3 flex items-center space-x-4">
+                          <div className="h-3 bg-gray-200 rounded w-24"></div>
+                          <div className="h-3 bg-gray-200 rounded w-32"></div>
+                          <div className="h-3 bg-gray-200 rounded w-28"></div>
+                        </div>
+
+                        {/* Help Areas Skeleton */}
+                        <div className="mt-3">
+                          <div className="h-3 bg-gray-200 rounded w-32 mb-2"></div>
+                          <div className="flex flex-wrap gap-1">
+                            <div className="h-6 bg-gray-200 rounded w-24"></div>
+                            <div className="h-6 bg-gray-200 rounded w-28"></div>
+                            <div className="h-6 bg-gray-200 rounded w-32"></div>
+                          </div>
+                        </div>
+
+                        {/* Stats and Button Skeleton */}
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="flex items-center space-x-4">
+                            <div className="h-3 bg-gray-200 rounded w-32"></div>
+                            <div className="h-3 bg-gray-200 rounded w-28"></div>
+                          </div>
+                          <div className="h-9 bg-gray-200 rounded w-28"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Mentee Cards */}
             <div className="space-y-0">
               {!loading &&
